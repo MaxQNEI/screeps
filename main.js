@@ -14,7 +14,6 @@ for (const role in LIMITS) {
     }
 }
 
-console.clear();
 console.log("Load at", new Date().toString());
 
 module.exports.loop = function () {
