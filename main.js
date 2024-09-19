@@ -1,8 +1,8 @@
 const XCreep = require("creep");
 
 const CreepsCount = {
-    Harvester: 5,
-    Upgrader: 10,
+    Harvester: 1,
+    Upgrader: 1,
 };
 
 const Creeps = {};
