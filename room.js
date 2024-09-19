@@ -34,7 +34,7 @@ module.exports.SourceCreepLimit = function SourceCreepLimit() {
                     const good = look.some(({ type, terrain }) => {
                         if (
                             type === "terrain" &&
-                            (terrain === "plain" || terrain === "swapm")
+                            (terrain === "plain" || terrain === "swamp")
                         ) {
                             return true;
                         } else if (type === "creep") {
