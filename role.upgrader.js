@@ -1,4 +1,4 @@
-const { randOf } = require("lib/rand");
+const { randOf } = require("rand");
 
 module.exports = function Upgrader(name) {
     const FN_QUEUE = [

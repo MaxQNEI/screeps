@@ -1,4 +1,4 @@
-const XCreep = require("creep");
+const ControllerCreep = require("controller.creep");
 
 const CreepsCount = {
     Harvester: 1,
@@ -21,11 +21,11 @@ module.exports.loop = function () {
     // Spawn
     for (const name in Creeps) {
         const { role } = Creeps[name];
-        XCreep(name).spawn(role);
+        ControllerCreep(name).spawn(role);
     }
 
     // Work
     for (const name in Game.creeps) {
-        XCreep(name).work();
+        ControllerCreep(name).work();
     }
 };
