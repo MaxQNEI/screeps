@@ -17,8 +17,6 @@ for (const role in CreepsCount) {
     }
 }
 
-let FirstMessage = false;
-
 module.exports.loop = function () {
     // Spawn
     for (const name in Creeps) {
