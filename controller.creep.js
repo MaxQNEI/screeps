@@ -1,5 +1,5 @@
-const Harvester = require("harvester");
-const Upgrader = require("upgrader");
+const Harvester = require("role.harvester");
+const Upgrader = require("role.upgrader");
 
 const BODY = {
     WORK,
