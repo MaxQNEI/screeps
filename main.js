@@ -1,4 +1,4 @@
-const { LIMITS } = require("config");
+const { LIMITS } = require("const");
 const ControllerCreep = require("controller.creep");
 
 const Creeps = {};

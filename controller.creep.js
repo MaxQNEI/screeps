@@ -1,4 +1,4 @@
-const { CREEP_BODY, CREEP_ROLES } = require("config");
+const { CREEP_ROLES } = require("const");
 const Harvester = require("role.harvester");
 const Upgrader = require("role.upgrader");
 
