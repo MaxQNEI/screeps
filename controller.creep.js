@@ -1,21 +1,6 @@
+const { CREEP_BODY, CREEP_ROLES } = require("config");
 const Harvester = require("role.harvester");
 const Upgrader = require("role.upgrader");
-
-const BODY = {
-    WORK,
-    MOVE,
-    CARRY,
-    ATTACK,
-    RANGED_ATTACK,
-    HEAL,
-    TOUGH,
-    CLAIM,
-};
-
-const ROLES = {
-    Harvester: [WORK, CARRY, MOVE],
-    Upgrader: [WORK, CARRY, MOVE],
-};
 
 module.exports = function Creep(name) {
     const role2fn = {
@@ -35,7 +20,7 @@ module.exports = function Creep(name) {
                     return false;
                 }
 
-                const spawnResult = spawn.spawnCreep(ROLES[role], name, {
+                const spawnResult = spawn.spawnCreep(CREEP_ROLES[role], name, {
                     memory: { role },
                     // energyStructures: [],
                     dryRun: false,

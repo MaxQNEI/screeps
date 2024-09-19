@@ -1,14 +1,10 @@
+const { LIMITS } = require("config");
 const ControllerCreep = require("controller.creep");
-
-const CreepsCount = {
-    Harvester: 1,
-    Upgrader: 1,
-};
 
 const Creeps = {};
 
-for (const role in CreepsCount) {
-    for (let i = 0; i < CreepsCount[role]; i++) {
+for (const role in LIMITS) {
+    for (let i = 0; i < LIMITS[role]; i++) {
         const number =
             Object.values(Creeps).filter((creep) => creep.role === role)
                 .length + 1;
