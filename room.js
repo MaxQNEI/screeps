@@ -44,7 +44,7 @@ module.exports.SourceCreepLimit = function SourceCreepLimit() {
                         return false;
                     });
 
-                    limit += parseInt(good);
+                    limit += good + 0;
                 }
             }
 
