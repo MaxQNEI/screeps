@@ -1,5 +1,6 @@
 const { LIMITS } = require("const");
 const ControllerCreep = require("controller.creep");
+const { SourceCreepLimit } = require("room");
 
 const Creeps = {};
 
@@ -14,6 +15,9 @@ for (const role in LIMITS) {
 }
 
 module.exports.loop = function () {
+    // Creep limit per source
+    SourceCreepLimit();
+
     // Spawn
     for (const name in Creeps) {
         const { role } = Creeps[name];
