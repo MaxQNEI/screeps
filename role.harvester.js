@@ -83,7 +83,7 @@ module.exports = function Harvester(name) {
             return false;
         }
 
-        const constructionSites = Game.rooms.sim.find(FIND_CONSTRUCTION_SITES);
+        const constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
         const to = constructionSites[0];
 
         if (creep.build(to) === ERR_NOT_IN_RANGE) {
@@ -98,7 +98,7 @@ module.exports = function Harvester(name) {
     }
 
     function _movePath(to) {
-        const path = Game.rooms.sim.findPath(creep, to);
+        const path = creep.room.findPath(creep, to);
         creep.moveByPath(path);
     }
 
