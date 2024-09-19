@@ -23,18 +23,18 @@ module.exports.SourceCreepLimit = function SourceCreepLimit() {
         const sources = room.find(FIND_SOURCES);
 
         for (const source of sources) {
+            const { x, y } = source.pos;
+
             let limit = 0;
 
             {
-                const { x, y } = source.pos;
-
                 for (const [dx, dy] of offsets) {
                     const look = room.lookAt(dx + x, dy + y);
 
                     const good = look.some(({ type, terrain }) => {
                         if (
                             type === "terrain" &&
-                            (terrain === "plain" || terrain === "spawn")
+                            (terrain === "plain" || terrain === "swapm")
                         ) {
                             return true;
                         } else if (type === "creep") {
@@ -55,7 +55,7 @@ module.exports.SourceCreepLimit = function SourceCreepLimit() {
             });
 
             console.log(
-                `Room ${room.name} -> Source#${source.id} :> CreepLimit: ${limit}`
+                `Room ${room.name} -> Source(${x}x${y}) :> CreepLimit: ${limit}`
             );
         }
     }
