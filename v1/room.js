@@ -54,9 +54,9 @@ module.exports.SourceCreepLimit = function SourceCreepLimit() {
                 // creeps: 0,
             });
 
-            console.log(
-                `Room ${room.name} -> Source(${x}x${y}) :> CreepLimit: ${limit}`
-            );
+            // console.log(
+            //     `Room ${room.name} -> Source(${x}x${y}) :> CreepLimit: ${limit}`
+            // );
         }
     }
 };

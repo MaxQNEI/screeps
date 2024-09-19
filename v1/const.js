@@ -1,6 +1,6 @@
 const LIMITS = {
-    Harvester: 2,
-    Upgrader: 2,
+    Harvester: 4,
+    Upgrader: 4,
 };
 
 const CREEP_BODY = {
