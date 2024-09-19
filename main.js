@@ -14,6 +14,8 @@ for (const role in LIMITS) {
     }
 }
 
+console.log("Load at", new Date().toString());
+
 module.exports.loop = function () {
     // Creep limit per source
     SourceCreepLimit();

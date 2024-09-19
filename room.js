@@ -10,7 +10,7 @@ const offsets = [
     [1, 1], //
 ];
 
-module.export.SourceCreepLimit = function SourceCreepLimit() {
+module.exports.SourceCreepLimit = function SourceCreepLimit() {
     const rooms = [];
 
     for (const name in Game.creeps) {
