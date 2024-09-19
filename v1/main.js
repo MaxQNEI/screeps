@@ -1,6 +1,6 @@
-const { LIMITS } = require("const");
-const ControllerCreep = require("controller.creep");
-const { SourceCreepLimit } = require("./room");
+const { LIMITS } = require("./lib.const");
+const ControllerCreep = require("./controller.creep");
+const { SourceCreepLimit } = require("./helper.room");
 
 const Creeps = {};
 

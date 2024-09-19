@@ -1,6 +1,6 @@
-const { CREEP_ROLES } = require("const");
-const Harvester = require("role.harvester");
-const Upgrader = require("role.upgrader");
+const { CREEP_ROLES } = require("./lib.const");
+const Harvester = require("./role.harvester");
+const Upgrader = require("./role.upgrader");
 
 module.exports = function Creep(name) {
     const role2fn = {
