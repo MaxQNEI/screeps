@@ -1,0 +1,22 @@
+{
+  "name": "screeps",
+  "version": "1.0.0",
+  "main": "main.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxQNEI/screeps.git"
+  },
+  "author": "MaxQNEI <maxqnei@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MaxQNEI/screeps/issues"
+  },
+  "homepage": "https://github.com/MaxQNEI/screeps#readme",
+  "description": ""
+}
