@@ -32,8 +32,7 @@ module.exports = function Upgrader(name) {
         creep.memory.forceHarvest = true;
 
         const sourceId =
-            creep.memory.sourceId ||
-            randOf(Game.rooms.sim.find(FIND_SOURCES)).id;
+            creep.memory.sourceId || randOf(creep.room.find(FIND_SOURCES)).id;
 
         creep.memory.sourceId = sourceId;
 

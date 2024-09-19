@@ -29,13 +29,13 @@ module.exports = function Creep(name) {
     return {
         spawn: (role = "Harvester") => {
             if (!creep) {
-                const firstSpawn = Object.values(Game.spawns)[0];
+                const spawn = Object.values(Game.spawns)[0];
 
-                if (firstSpawn.store.getUsedCapacity(RESOURCE_ENERGY) < 200) {
+                if (spawn.store.getUsedCapacity(RESOURCE_ENERGY) < 200) {
                     return false;
                 }
 
-                const spawnResult = firstSpawn.spawnCreep(ROLES[role], name, {
+                const spawnResult = spawn.spawnCreep(ROLES[role], name, {
                     memory: { role },
                     // energyStructures: [],
                     dryRun: false,

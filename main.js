@@ -20,11 +20,6 @@ for (const role in CreepsCount) {
 let FirstMessage = false;
 
 module.exports.loop = function () {
-    if (!FirstMessage) {
-        console.log(`Game.rooms:`, Object.keys(Game.rooms));
-        FirstMessage = true;
-    }
-
     // Spawn
     for (const name in Creeps) {
         const { role } = Creeps[name];
