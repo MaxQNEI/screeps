@@ -1,8 +1,6 @@
 (() => {
   // src/index.js
-  var src_default = {
-    loop: function loop() {
-      console.log("loop()");
-    }
+  var loop = function loop2() {
+    console.log("tick");
   };
 })();

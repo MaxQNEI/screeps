@@ -1,5 +1,3 @@
-export default {
-    loop: function loop() {
-        console.log("loop()");
-    },
+export const loop = function loop() {
+    console.log("tick");
 };
