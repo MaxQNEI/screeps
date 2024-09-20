@@ -30,6 +30,9 @@
             const sources = creepSourcesByDistance(creep);
             creep.memory.source = sources[0];
           }
+          if (creep.harvest(creep.memory.source) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(creep.memory.source);
+          }
         }
       }
     }
