@@ -40,6 +40,8 @@ class XSource {
                     return true;
                 }
 
+                console.log(type, terrain);
+
                 return false;
             });
 
