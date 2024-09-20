@@ -5,27 +5,19 @@ class XCreep {
     room = null;
     body = null;
     role = null;
+    job = null;
 
-    setRoom(room) {
+    constructor(room, role, body, job) {
         this.room = room;
-
-        return this;
-    }
-
-    setRole(role) {
         this.role = role;
-
-        return this;
-    }
-
-    setBody(body) {
         this.body = body;
+        this.job = job;
 
         return this;
     }
 
     spawn() {
-        const spawn = this.getPossibleSpawn();
+        const spawn = this.getAvailableSpawn();
 
         if (!spawn) {
             return;
@@ -40,13 +32,13 @@ class XCreep {
         const name = `${this.role}${i[this.role]}`;
 
         return spawn.spawnCreep(this.body, name, {
-            memory: { role: this.role, bord: Date.now() },
+            memory: { born: Date.now(), role: this.role, job: this.job },
         });
     }
 
-    getPossibleSpawn() {
+    getAvailableSpawn() {
         const name = `SpawnTest-${Date.now().toString(36)}`;
-        const opts = { memory: { role: this.role }, dryRun: true };
+        const opts = { dryRun: true };
 
         const xRoom = new XRoom(this.room);
 

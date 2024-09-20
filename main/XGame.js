@@ -49,13 +49,13 @@ class XGame {
                 continue;
             }
 
-            const xCreep = new XCreep();
+            const xCreep = new XCreep(
+                spawn.room,
+                ROLES.HARVESTER,
+                BODIES.HARVESTER_1
+            );
 
-            xCreep
-                .setRoom(spawn.room)
-                .setRole(ROLES.HARVESTER)
-                .setBody(BODIES.HARVESTER_1)
-                .spawn();
+            xCreep.spawn();
 
             break;
         }
