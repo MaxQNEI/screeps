@@ -82,41 +82,44 @@ export default function loop() {
             }
         } else if (creep.memory.job === "transfer-energy") {
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-                delete creep.memory.sourceId;
+                delete creep.memory.spawnId;
                 creep.memory.job = "transfer-energy";
             } else {
                 if (!creep.memory.spawnId) {
-                    // const sources = creepSourcesByDistance(creep);
-                    // creep.memory.sourceId = sources[0].id;
+                    const spawns = creep.room.find(FIND_MY_SPAWNS);
+                    for (const spawn of spawns) {
+                        if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                            creep.memory.spawnId = spawn.id;
+                            break;
+                        }
+                    }
 
-                    const result = creep.room.find(FIND_MY_SPAWNS);
-                    console.log(">>>", result);
-                    for (const spawn of result) {
-                        console.log("spawn:", spawn);
+                    if (!creep.memory.spawnId) {
+                        creep.memory.spawnId = spawns[0].id;
                     }
                 }
 
-                // if (!creep.memory.sourceId) {
-                //     creep.say(":( #1");
-                //     return;
-                // }
+                if (!creep.memory.spawnId) {
+                    creep.say(":( #1");
+                    return;
+                }
 
-                // const source = Game.getObjectById(creep.memory.sourceId);
+                const spawn = Game.getObjectById(creep.memory.spawnId);
 
-                // if (!source) {
-                //     creep.say(":( #2");
-                //     return;
-                // }
+                if (!spawn) {
+                    creep.say(":( #2");
+                    return;
+                }
 
-                // let result;
+                let result;
 
-                // result = creep.harvest(source);
-                // result !== OK && creep.say(`H:${result}`);
+                result = creep.transfer(spawn, RESOURCE_ENERGY);
+                result !== OK && creep.say(`T:${result}`);
 
-                // if (result === ERR_NOT_IN_RANGE) {
-                //     result = creep.moveTo(source);
-                //     result !== OK && creep.say(`M:${result}`);
-                // }
+                if (result === ERR_NOT_IN_RANGE) {
+                    result = creep.moveTo(spawn);
+                    result !== OK && creep.say(`M:${result}`);
+                }
             }
         }
     }

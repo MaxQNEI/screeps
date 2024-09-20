@@ -60,15 +60,36 @@
         }
       } else if (creep.memory.job === "transfer-energy") {
         if (creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-          delete creep.memory.sourceId;
+          delete creep.memory.spawnId;
           creep.memory.job = "transfer-energy";
         } else {
           if (!creep.memory.spawnId) {
-            const result = creep.room.find(FIND_MY_SPAWNS);
-            console.log(">>>", result);
-            for (const spawn of result) {
-              console.log("spawn:", spawn);
+            const spawns = creep.room.find(FIND_MY_SPAWNS);
+            for (const spawn2 of spawns) {
+              if (spawn2.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                creep.memory.spawnId = spawn2.id;
+                break;
+              }
             }
+            if (!creep.memory.spawnId) {
+              creep.memory.spawnId = spawns[0].id;
+            }
+          }
+          if (!creep.memory.spawnId) {
+            creep.say(":( #1");
+            return;
+          }
+          const spawn = Game.getObjectById(creep.memory.spawnId);
+          if (!spawn) {
+            creep.say(":( #2");
+            return;
+          }
+          let result;
+          result = creep.transfer(spawn, RESOURCE_ENERGY);
+          result !== OK && creep.say(`T:${result}`);
+          if (result === ERR_NOT_IN_RANGE) {
+            result = creep.moveTo(spawn);
+            result !== OK && creep.say(`M:${result}`);
           }
         }
       }
