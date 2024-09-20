@@ -85,26 +85,30 @@ export default function loop() {
                 delete creep.memory.spawnId;
                 creep.memory.job = "transfer-energy";
             } else {
-                if (!creep.memory.spawnId) {
-                    const spawns = creep.room.find(FIND_MY_SPAWNS);
-                    for (const spawn of spawns) {
-                        if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                            creep.memory.spawnId = spawn.id;
-                            break;
+                if (!creep.memory.transferId) {
+                    {
+                        const spawns = creep.room.find(FIND_MY_SPAWNS);
+                        for (const spawn of spawns) {
+                            if (
+                                spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+                            ) {
+                                creep.memory.transferId = spawn.id;
+                                break;
+                            }
                         }
-                    }
 
-                    if (!creep.memory.spawnId) {
-                        creep.memory.spawnId = spawns[0].id;
+                        if (!creep.memory.transferId) {
+                            creep.memory.transferId = spawns[0].id;
+                        }
                     }
                 }
 
-                if (!creep.memory.spawnId) {
+                if (!creep.memory.transferId) {
                     creep.say(":( #1");
                     return;
                 }
 
-                const spawn = Game.getObjectById(creep.memory.spawnId);
+                const spawn = Game.getObjectById(creep.memory.transferId);
 
                 if (!spawn) {
                     creep.say(":( #2");
