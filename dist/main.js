@@ -1,6 +1,6 @@
 (() => {
   // src/index.js
-  function loop() {
+  module.exports.loop = function loop() {
     console.log("tick");
   }
 })();

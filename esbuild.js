@@ -26,7 +26,7 @@ import CHILD_PROCESS from "child_process";
             const body = (
                 await FSP.readFile("dist/main.js", { encoding: "utf-8" })
             ).replace(
-                /^(\s+)(function loop() {)/,
+                /^(\s+)(function loop\(\) {)/m,
                 "$1module.exports.loop = $2"
             );
 
