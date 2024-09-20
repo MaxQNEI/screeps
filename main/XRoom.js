@@ -41,7 +41,7 @@ class XRoom {
         return constructionlist;
     }
 
-    creeps() {
+    creeps(fn) {
         const creeplist = [];
 
         for (const creepName in Game.creeps) {
