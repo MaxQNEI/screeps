@@ -108,20 +108,20 @@ export default function loop() {
                     return;
                 }
 
-                const spawn = Game.getObjectById(creep.memory.transferId);
+                const transfer = Game.getObjectById(creep.memory.transferId);
 
-                if (!spawn) {
+                if (!transfer) {
                     creep.say(":( #2");
                     return;
                 }
 
                 let result;
 
-                result = creep.transfer(spawn, RESOURCE_ENERGY);
+                result = creep.transfer(transfer, RESOURCE_ENERGY);
                 result !== OK && creep.say(`T:${result}`);
 
                 if (result === ERR_NOT_IN_RANGE) {
-                    result = creep.moveTo(spawn);
+                    result = creep.moveTo(transfer);
                     result !== OK && creep.say(`M:${result}`);
                 }
             }

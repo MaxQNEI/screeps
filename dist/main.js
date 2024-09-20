@@ -66,9 +66,9 @@
           if (!creep.memory.transferId) {
             {
               const spawns = creep.room.find(FIND_MY_SPAWNS);
-              for (const spawn2 of spawns) {
-                if (spawn2.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                  creep.memory.transferId = spawn2.id;
+              for (const spawn of spawns) {
+                if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                  creep.memory.transferId = spawn.id;
                   break;
                 }
               }
@@ -81,16 +81,16 @@
             creep.say(":( #1");
             return;
           }
-          const spawn = Game.getObjectById(creep.memory.transferId);
-          if (!spawn) {
+          const transfer = Game.getObjectById(creep.memory.transferId);
+          if (!transfer) {
             creep.say(":( #2");
             return;
           }
           let result;
-          result = creep.transfer(spawn, RESOURCE_ENERGY);
+          result = creep.transfer(transfer, RESOURCE_ENERGY);
           result !== OK && creep.say(`T:${result}`);
           if (result === ERR_NOT_IN_RANGE) {
-            result = creep.moveTo(spawn);
+            result = creep.moveTo(transfer);
             result !== OK && creep.say(`M:${result}`);
           }
         }
