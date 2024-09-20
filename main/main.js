@@ -1,8 +1,10 @@
 console.log("Load at", new Date().toString());
 
-const XRooms = require("./Rooms");
+const XGame = require("./XGame");
 
-const _rooms = new XRooms();
-_rooms.update();
+const xGame = new XGame();
+xGame.update();
 
-module.exports.loop = function loop() {};
+module.exports.loop = function loop() {
+    xGame.spawnHarvesters();
+};

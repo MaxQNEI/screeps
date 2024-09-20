@@ -1,5 +1,6 @@
 class XSource {
-    offsets = [
+    // around
+    OFFSETS = [
         [-1, -1],
         [0, -1],
         [1, -1],
@@ -23,7 +24,7 @@ class XSource {
 
         let limit = 0;
 
-        for (const [dx, dy] of this.offsets) {
+        for (const [dx, dy] of this.OFFSETS) {
             const look = this.source.room.lookAt(dx + x, dy + y);
 
             const ok = look.some((data) => {
@@ -47,8 +48,6 @@ class XSource {
 
             limit += ok ? 1 : 0;
         }
-
-        console.log(`${x}x${y} ${limit}`);
 
         return limit;
     }
