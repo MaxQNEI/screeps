@@ -1,10 +1,10 @@
-import * as esbuild from "esbuild";
-import fsp from "fs/promises";
-import { exec } from "child_process";
+import * as ESBUILD from "esbuild";
+import FSP from "fs/promises";
+import CHILD_PROCESS from "child_process";
 
 // Esbuild
 {
-    const context = await esbuild.context({
+    const context = await ESBUILD.context({
         entryPoints: ["src/index.js"],
         bundle: true,
         minify: false,
@@ -12,16 +12,6 @@ import { exec } from "child_process";
         target: ["chrome58", "firefox57", "safari11", "edge16"],
         outfile: "dist/main.js",
         logLevel: "info",
-        plugins: [
-            {
-                name: "env",
-                setup(build) {
-                    build.onEnd((result) => {
-                        console.log(result);
-                    });
-                },
-            },
-        ],
     });
 
     await context.watch();
@@ -29,11 +19,20 @@ import { exec } from "child_process";
 
 // Git push
 {
-    const watcher = fsp.watch("dist/main.js");
+    const watcher = FSP.watch("dist/main.js");
 
     for await (const event of watcher) {
-        await new Promise((resolve) => {
-            exec(
+        await new Promise(async (resolve) => {
+            const body = (
+                await FSP.readFile("dist/main.js", { encoding: "utf-8" })
+            ).replace(
+                /^(\s+)(function loop() {)/,
+                "$1module.exports.loop = $2"
+            );
+
+            await FSP.writeFile("dist/main.js", body, { encoding: "utf-8" });
+
+            CHILD_PROCESS.exec(
                 `git add .; git commit -m "esbuild-git-push"; git push`,
                 (error, stdout, stderr) => {
                     if (error) {
