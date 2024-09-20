@@ -1,1 +1,3 @@
-import loop from "./main";
+export default function loop() {
+    console.log("tick");
+}
