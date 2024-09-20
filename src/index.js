@@ -87,6 +87,7 @@ export default function loop() {
                     // creep.memory.sourceId = sources[0].id;
 
                     const result = creep.find(FIND_MY_SPAWNS);
+                    console.log(">>>", result);
                     for (const spawn of result) {
                         console.log("spawn:", spawn);
                     }

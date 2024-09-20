@@ -62,6 +62,7 @@
         } else {
           if (!creep.memory.spawnId) {
             const result = creep.find(FIND_MY_SPAWNS);
+            console.log(">>>", result);
             for (const spawn of result) {
               console.log("spawn:", spawn);
             }
