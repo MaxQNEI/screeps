@@ -33,7 +33,7 @@ class XGame {
 
     //
     spawnHarvesters() {
-        for (const _spawn of this.spawns()) {
+        for (const spawn of this.spawns()) {
             const xRoom = new XRoom(spawn.room);
 
             const harvesters = xRoom
