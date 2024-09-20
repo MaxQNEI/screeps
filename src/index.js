@@ -60,16 +60,13 @@ export default function loop() {
                     return;
                 }
 
-                dump(source);
-
                 let result;
 
                 creep.say(`H:${(result = creep.harvest(source))}`);
 
                 if (result === ERR_NOT_IN_RANGE) {
+                    console.log(source);
                     creep.say(`M:${(result = creep.move(source))}`);
-                } else if (result === ERR_INVALID_ARGS) {
-                    dump(source);
                 }
             }
         }
