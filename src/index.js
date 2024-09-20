@@ -1,3 +1,5 @@
+import dump from "./lib/dump";
+
 function creepSourcesByDistance(creep) {
     const sources = creep.room
         .find(FIND_SOURCES)
@@ -62,8 +64,10 @@ export default function loop() {
 
                 creep.say(`H:${(result = creep.harvest(source))}`);
 
-                if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                if (result === ERR_NOT_IN_RANGE) {
                     creep.say(`M:${(result = creep.move(source))}`);
+                } else if (result === ERR_INVALID_ARGS) {
+                    dump(source);
                 }
             }
         }
