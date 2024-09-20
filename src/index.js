@@ -1,3 +1,3 @@
 import loop from "./main";
 
-loop();
+/* module.exports.loop = loop; */ loop;
