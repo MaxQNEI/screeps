@@ -26,6 +26,7 @@ class XSource {
         for (const [dx, dy] of this.offsets) {
             const look = this.source.room.lookAt(dx + x, dy + y);
 
+            console.log(`${dx}x${dy}`);
             const ok = look.some((data) => {
                 const { type, terrain } = data;
 
