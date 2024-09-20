@@ -88,6 +88,7 @@ export default function loop() {
                 if (!creep.memory.transferId) {
                     {
                         const spawns = creep.room.find(FIND_MY_SPAWNS);
+
                         for (const spawn of spawns) {
                             if (
                                 spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
@@ -123,6 +124,8 @@ export default function loop() {
                 if (result === ERR_NOT_IN_RANGE) {
                     result = creep.moveTo(transfer);
                     result !== OK && creep.say(`M:${result}`);
+                } else if (result === ERR_FULL) {
+                    delete creep.memory.transferId;
                 }
             }
         }

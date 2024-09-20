@@ -92,6 +92,8 @@
           if (result === ERR_NOT_IN_RANGE) {
             result = creep.moveTo(transfer);
             result !== OK && creep.say(`M:${result}`);
+          } else if (result === ERR_FULL) {
+            delete creep.memory.transferId;
           }
         }
       }
