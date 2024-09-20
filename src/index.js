@@ -48,6 +48,11 @@ export default function loop() {
 
                 console.log(JSON.stringify(creep.memory.source));
 
+                if (!creep.memory.source) {
+                    creep.say(":(");
+                    return;
+                }
+
                 if (creep.harvest(creep.memory.source) === ERR_NOT_IN_RANGE) {
                     creep.move(creep.memory.source);
                 }
