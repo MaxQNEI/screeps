@@ -1,6 +1,7 @@
 {
     "name": "screeps",
     "version": "1.0.0",
+    "type": "commonjs",
     "main": "main.js",
     "directories": {
         "lib": "lib"
