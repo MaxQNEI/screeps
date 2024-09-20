@@ -45,7 +45,7 @@ class XRoom {
         const creeplist = [];
 
         for (const creepName in Game.creeps) {
-            const creep = Game.spawns[creepName];
+            const creep = Game.creeps[creepName];
             if (creep.room === this.room) {
                 fn && fn(creep);
                 creeplist.push(creep);
