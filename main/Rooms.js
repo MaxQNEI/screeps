@@ -1,4 +1,4 @@
-class Rooms {
+class XRooms {
     every(fn) {
         for (const roomName in Game.rooms) {
             fn(Game.rooms[roomName]);
@@ -14,4 +14,4 @@ class Rooms {
     }
 }
 
-module.exports = Rooms;
+module.exports = XRooms;

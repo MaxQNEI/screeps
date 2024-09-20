@@ -1,4 +1,4 @@
-class Source {
+class XSource {
     source = null;
 
     constructor(source) {
@@ -39,4 +39,4 @@ class Source {
     }
 }
 
-module.exports = Source;
+module.exports = XSource;
