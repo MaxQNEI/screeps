@@ -31,7 +31,7 @@
             const sources = creepSourcesByDistance(creep);
             creep.memory.source = sources[0];
           }
-          console.log(JSON.stringify(creep.memory.source.pos));
+          console.log(JSON.stringify(creep.memory.source));
           if (creep.harvest(creep.memory.source) === ERR_NOT_IN_RANGE) {
             creep.move(creep.memory.source);
           }
