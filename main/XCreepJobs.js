@@ -1,4 +1,5 @@
 const { ROLES } = require("./const");
+const XSource = require("./XSource");
 
 class XCreepJobs {
     findJobByRole() {
