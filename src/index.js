@@ -8,7 +8,7 @@ function creepSourcesByDistance(creep) {
         .sort(({ distance: a }, { distance: b }) => {
             return a === b ? 0 : a > b ? 1 : -1;
         })
-        .map((source) => source);
+        .map(({ source }) => source);
 
     function _distance(startPoint, endPoint) {
         return (
