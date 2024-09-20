@@ -20,7 +20,7 @@ function creepSourcesByDistance(creep) {
     return sources;
 }
 
-console.log(`Load`);
+console.log("".padStart(80, "="));
 
 export default function loop() {
     // Spawn exists?
@@ -41,18 +41,25 @@ export default function loop() {
 
         if (!creep.memory.job) {
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                if (!creep.memory.source) {
+                if (!creep.memory.sourceId) {
                     const sources = creepSourcesByDistance(creep);
-                    creep.memory.source = sources[0];
+                    creep.memory.sourceId = sources[0].id;
                 }
 
-                if (!creep.memory.source) {
-                    creep.say(":(");
+                if (!creep.memory.sourceId) {
+                    creep.say(":( #1");
                     return;
                 }
 
-                if (creep.harvest(creep.memory.source) === ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.memory.source);
+                const source = Game.getObjectById(creep.memory.sourceId);
+
+                if (!source) {
+                    creep.say(":( #2");
+                    return;
+                }
+
+                if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                    creep.move(source);
                 }
             }
         }
