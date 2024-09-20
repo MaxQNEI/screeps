@@ -1,4 +1,5 @@
 const { ROLES } = require("./const");
+const XRoom = require("./XRoom");
 const XSource = require("./XSource");
 
 class XCreepJobs {
