@@ -2,11 +2,11 @@
   // src/index.js
   function creepSourcesByDistance(creep) {
     const sources = creep.room.find(FIND_SOURCES).map((source) => ({
-      source,
+      origin: source,
       distance: _distance(creep.pos, source.pos)
     })).sort(({ distance: a }, { distance: b }) => {
       return a === b ? 0 : a > b ? 1 : -1;
-    }).map(({ source }) => source);
+    }).map(({ origin }) => origin);
     function _distance(startPoint, endPoint) {
       return Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2);
     }
