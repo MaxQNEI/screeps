@@ -1,6 +1,14 @@
 (() => {
   // src/index.js
   module.exports.loop = function loop() {
-    console.log("tick");
+    {
+      if (Object.keys(Game.spawns).length === 0) {
+        return;
+      }
+    }
+    {
+      if (!Game.creeps.Harvester1) {
+      }
+    }
   }
 })();
