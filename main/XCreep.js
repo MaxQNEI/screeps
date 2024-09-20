@@ -52,7 +52,7 @@ class XCreep {
 
         let spawn = null;
         for (const _spawn of xRoom.spawns()) {
-            if (_spawn.spawnCreep(this.body, name, opts)) {
+            if (_spawn.spawnCreep(this.body, name, opts) === OK) {
                 spawn = _spawn;
                 break;
             }
