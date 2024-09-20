@@ -44,6 +44,9 @@ export default function loop() {
         if (!creep.memory.job) {
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 creep.memory.job = "harvest-energy";
+            } else {
+                delete creep.memory.sourceId;
+                creep.memory.job = "transfer-energy";
             }
         } else if (creep.memory.job === "harvest-energy") {
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
