@@ -44,6 +44,8 @@ function dump() {
             for (const k in arg) {
                 _(arg[k], tab + 1, k);
             }
+        } else {
+            out.push(`${prefix}<type "${typeof arg}">`);
         }
     }
 

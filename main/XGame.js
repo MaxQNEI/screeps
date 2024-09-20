@@ -9,7 +9,7 @@ class XGame {
     // For-each
     rooms(fn) {
         for (const roomName in Game.rooms) {
-            fn(Game.rooms[roomName]);
+            fn && fn(Game.rooms[roomName]);
         }
     }
 
@@ -28,7 +28,7 @@ class XGame {
     sources(fn) {
         this.rooms((room) => {
             for (const source of room.find(FIND_SOURCES)) {
-                fn(source, room);
+                fn && fn(source, room);
             }
         });
     }
@@ -52,7 +52,7 @@ class XGame {
 
         // Call
         for (const creepName in this.creeplist) {
-            fn(this.creeplist[creepName]);
+            fn && fn(this.creeplist[creepName]);
         }
     }
 

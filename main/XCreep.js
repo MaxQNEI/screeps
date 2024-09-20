@@ -1,19 +1,21 @@
 const { ROLES } = require("./const");
+const { dump } = require("./lib.dump");
+const XCreepJobs = require("./XCreepJobs");
 const XRoom = require("./XRoom");
 const XSource = require("./XSource");
 
-class XCreep {
+class XCreep extends XCreepJobs {
     creep = null;
     room = null;
     body = null;
     role = null;
-    job = null;
 
-    constructor(room, role, body, job) {
+    constructor(room, role, body) {
+        super();
+
         this.room = room;
         this.role = role;
         this.body = body;
-        this.job = job;
 
         return this;
     }
@@ -24,7 +26,6 @@ class XCreep {
         this.room = this.creep.room;
         this.role = this.creep.memory.role;
         this.body = this.creep.body.map(({ type }) => type);
-        this.job = this.creep.memory.job;
 
         return this;
     }
@@ -59,7 +60,7 @@ class XCreep {
                 //
                 born: Date.now(),
                 role: this.role,
-                job: this.job,
+                job: null,
             },
         });
 
@@ -84,80 +85,8 @@ class XCreep {
     }
 
     work() {
-        if (this.role === ROLES.HARVESTER) {
-            // Get job
-            if (!this.job) {
-                if (this.creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                    this.job = "harvest-energy";
-                } else {
-                    const xRoom = new XRoom(this.creep.room);
-
-                    // Find spawn free capacity
-                    const objects = [
-                        ...xRoom.spawns().map((spawn) => ({ spawn })),
-
-                        ...xRoom
-                            .constructions()
-                            .map((construction) => ({ construction })),
-                    ];
-
-                    for (const { type, spawn, construction } of objects) {
-                        if (
-                            spawn &&
-                            spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
-                        ) {
-                            this.job = "transfer-spawn";
-                            break;
-                        } else if (construction) {
-                            this.job = "build-construction";
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (this.job === "harvest-energy") {
-                if (this.creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-                    // Done
-                    this.job = null;
-                } else {
-                    // Set source if need
-                    if (!this.creep.memory.sourceId) {
-                        // Find free
-                        const sourcesByDistance = this.creep.room
-                            .find(FIND_SOURCES)
-                            .map((source) => ({
-                                source,
-                                distance: this.distance(
-                                    this.creep.pos,
-                                    source.pos
-                                ),
-                            }))
-                            .sort(({ distance: a }, { distance: b }) =>
-                                a === b ? 0 : a > b ? 1 : -1
-                            )
-                            .map(({ source }) => source);
-
-                        for (const source of sourcesByDistance) {
-                            const xSource = new XSource(source);
-
-                            if (
-                                xSource.creeps().length < xSource.creepLimit()
-                            ) {
-                                this.creep.memory.sourceId = xSource.source.id;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (this.creep.memory.sourceId) {
-                        this.harvest(
-                            Game.getObjectById(this.creep.memory.sourceId)
-                        );
-                    }
-                }
-            }
-        }
+        this.findJobByRole();
+        this.doJob();
 
         return this;
     }
@@ -168,31 +97,61 @@ class XCreep {
         );
     }
 
-    move(to) {
-        const path = this.creep.pos.findPathTo(to);
-        this.creep.move(path.direction);
-    }
-
     harvest(to) {
+        console.log(`${this.creep.name}: harvest()`);
+
         if (this.creep.harvest(to) === ERR_NOT_IN_RANGE) {
             this.move(to);
         }
     }
 
     build(to) {
+        console.log(`${this.creep.name}: build()`);
+
         if (this.creep.build(to) === ERR_NOT_IN_RANGE) {
             this.move(to);
         }
     }
 
     upgradeController(to) {
+        console.log(`${this.creep.name}: upgradeController()`);
+
         if (this.creep.upgradeController(to) === ERR_NOT_IN_RANGE) {
             this.move(to);
         }
     }
 
-    save() {
-        this.creep.memory.job = this.job;
+    move(to) {
+        if (!to) {
+            console.log(`${this.creep.name}: [ERROR] move() "to":`, to);
+            return false;
+        }
+
+        const moveCoords = `${to.pos.x}x${to.pos.y}`;
+        if (this.creep.memory.moveCoords !== moveCoords) {
+            this.creep.memory.path = this.creep.pos.findPathTo(to);
+            this.creep.memory.moveCoords = moveCoords;
+        }
+
+        if (this.creep.memory.path) {
+            this.creep.moveByPath(this.creep.memory.path);
+        }
+    }
+
+    setJob(job) {
+        this.creep.memory.job = job;
+    }
+
+    getJob(job) {
+        return this.creep.memory.job;
+    }
+
+    isJob(job) {
+        return this.creep.memory.job === job;
+    }
+
+    say(msg, pub = true) {
+        this.creep.say(msg, pub);
     }
 }
 
