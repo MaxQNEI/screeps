@@ -85,6 +85,7 @@
             creep.say(":( #2");
             return;
           }
+          dump(source);
           let result;
           creep.say(`H:${result = creep.harvest(source)}`);
           if (result === ERR_NOT_IN_RANGE) {

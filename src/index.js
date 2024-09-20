@@ -60,6 +60,8 @@ export default function loop() {
                     return;
                 }
 
+                dump(source);
+
                 let result;
 
                 creep.say(`H:${(result = creep.harvest(source))}`);
