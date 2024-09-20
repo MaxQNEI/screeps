@@ -1,3 +1,3 @@
 import loop from "./main";
 
-/* module.exports.loop = loop; */ loop();
+`Flag:${loop.name}`;

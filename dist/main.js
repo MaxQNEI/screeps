@@ -5,5 +5,5 @@
   }
 
   // src/index.js
-  loop();
+  "Flag:".concat(loop.name);
 })();
