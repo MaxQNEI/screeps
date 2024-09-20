@@ -1,4 +1,15 @@
 class XSource {
+    offsets = [
+        [-1, -1],
+        [0, -1],
+        [1, -1],
+        [-1, 0],
+        [1, 0],
+        [-1, 1],
+        [0, 1],
+        [1, 1],
+    ];
+
     source = null;
 
     constructor(source) {
@@ -12,7 +23,7 @@ class XSource {
 
         let limit = 0;
 
-        for (const [dx, dy] of offsets) {
+        for (const [dx, dy] of this.offsets) {
             const look = this.source.room.lookAt(dx + x, dy + y);
 
             const ok = look.some(({ type, terrain }) => {
