@@ -9,7 +9,7 @@ import CHILD_PROCESS from "child_process";
         bundle: true,
         minify: false,
         sourcemap: false,
-        target: ["chrome58", "firefox57", "safari11", "edge16"],
+        // target: ["chrome58", "firefox57", "safari11", "edge16"],
         outfile: "dist/main.js",
         logLevel: "info",
     });
