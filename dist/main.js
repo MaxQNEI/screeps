@@ -43,7 +43,7 @@
           let result;
           creep.say(`H:${result = creep.harvest(source)}`);
           if (result === ERR_NOT_IN_RANGE) {
-            console.log(source);
+            console.log(typeof source, source);
             creep.say(`M:${result = creep.move(source)}`);
           }
         }
