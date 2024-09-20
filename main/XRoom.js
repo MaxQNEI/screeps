@@ -27,10 +27,32 @@ class XRoom {
         }
     }
 
-    listCreep() {
-        return Object.values(Game.creeps).filter(
-            ({ room }) => room === this.room
-        );
+    constructions(fn) {
+        const constructionlist = [];
+
+        for (const constructionName in Game.constructionSites) {
+            const construction = Game.constructionSites[constructionName];
+            if (construction.room === this.room) {
+                fn && fn(construction);
+                constructionlist.push(construction);
+            }
+        }
+
+        return constructionlist;
+    }
+
+    creeps() {
+        const creeplist = [];
+
+        for (const creepName in Game.creeps) {
+            const creep = Game.spawns[creepName];
+            if (creep.room === this.room) {
+                fn && fn(creep);
+                creeplist.push(creep);
+            }
+        }
+
+        return creeplist;
     }
 }
 

@@ -1,3 +1,5 @@
+const XRoom = require("./XRoom");
+
 class XSource {
     // around
     OFFSETS = [
@@ -15,8 +17,20 @@ class XSource {
 
     constructor(source) {
         this.source = source;
+    }
 
-        this.creepLimit();
+    creeps(fn) {
+        const creeplist = [];
+        const xRoom = new XRoom(this.source.room);
+
+        for (const creep of xRoom
+            .creeps()
+            .filter((creep) => creep.memory.sourceId === this.source.id)) {
+            fn && fn(creep);
+            creeplist.push(creep);
+        }
+
+        return creeplist;
     }
 
     creepLimit() {

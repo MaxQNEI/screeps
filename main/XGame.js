@@ -4,6 +4,8 @@ const XRoom = require("./XRoom");
 const XSource = require("./XSource");
 
 class XGame {
+    creeplist = {};
+
     // For-each
     rooms(fn) {
         for (const roomName in Game.rooms) {
@@ -31,13 +33,36 @@ class XGame {
         });
     }
 
+    creeps(fn) {
+        // Remove deleted
+        for (const creepName in this.creeplist) {
+            if (!Game.creeps[creepName]) {
+                delete this.creeplist[creepName];
+            }
+        }
+
+        // Add exists
+        for (const creepName in Game.creeps) {
+            if (!this.creeplist[creepName]) {
+                this.creeplist[creepName] = new XCreep().use(
+                    Game.creeps[creepName]
+                );
+            }
+        }
+
+        // Call
+        for (const creepName in this.creeplist) {
+            fn(this.creeplist[creepName]);
+        }
+    }
+
     //
     spawnHarvesters() {
         for (const spawn of this.spawns()) {
             const xRoom = new XRoom(spawn.room);
 
             const harvesters = xRoom
-                .listCreep()
+                .creeps()
                 .map((creep) => creep.memory.role === ROLES.HARVESTER).length;
 
             const limit = Object.values(xRoom.memory.sources).reduce(
@@ -63,15 +88,16 @@ class XGame {
 
     //
     update() {
-        this.sources(function (source, room) {
+        this.sources((source, room) => {
             const xSource = new XSource(source);
 
             room.memory.sources = room.memory.sources || {};
-            room.memory.sources[source.id] = {
-                limit: {
-                    creep: xSource.creepLimit(),
-                },
+
+            room.memory.sources[source.id] = room.memory.sources[source.id] || {
+                limit: { creep: null },
             };
+
+            room.memory.sources[source.id].limit.creep = xSource.creepLimit();
         });
     }
 }
