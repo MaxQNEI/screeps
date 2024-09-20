@@ -35,7 +35,6 @@
             creep.say(":(");
             return;
           }
-          console.log(JSON.stringify(creep.memory.source));
           if (creep.harvest(creep.memory.source) === ERR_NOT_IN_RANGE) {
             creep.moveTo(creep.memory.source);
           }
