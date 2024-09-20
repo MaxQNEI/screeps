@@ -54,7 +54,7 @@ export default function loop() {
                 console.log(JSON.stringify(creep.memory.source));
 
                 if (creep.harvest(creep.memory.source) === ERR_NOT_IN_RANGE) {
-                    creep.move(creep.memory.source);
+                    creep.moveTo(creep.memory.source);
                 }
             }
         }
