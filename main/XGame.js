@@ -45,18 +45,19 @@ class XGame {
                 0
             );
 
-            if (harvesters < limit) {
-                // spawn
-                const xCreep = new XCreep();
-
-                xCreep
-                    .setRoom(spawn.room)
-                    .setRole(ROLES.HARVESTER)
-                    .setBody(BODIES.HARVESTER_1)
-                    .spawn();
-
-                break;
+            if (harvesters >= limit) {
+                continue;
             }
+
+            const xCreep = new XCreep();
+
+            xCreep
+                .setRoom(spawn.room)
+                .setRole(ROLES.HARVESTER)
+                .setBody(BODIES.HARVESTER_1)
+                .spawn();
+
+            break;
         }
     }
 
