@@ -16,6 +16,27 @@ class XCreep {
         return this;
     }
 
+    use(creep) {
+        this.creep = creep;
+
+        this.room = this.creep.room;
+        this.role = this.creep.memory.role;
+        this.body = this.creep.body;
+        this.job = this.creep.memory.job;
+
+        return this;
+    }
+
+    useByName(name) {
+        if (!Game.creeps[name]) {
+            return null;
+        }
+
+        this.use(Game.creeps[name]);
+
+        return this;
+    }
+
     spawn() {
         const spawn = this.getAvailableSpawn();
 
