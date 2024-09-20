@@ -64,7 +64,7 @@
           creep.memory.job = "transfer-energy";
         } else {
           if (!creep.memory.spawnId) {
-            const result = creep.find(FIND_MY_SPAWNS);
+            const result = creep.room.find(FIND_MY_SPAWNS);
             console.log(">>>", result);
             for (const spawn of result) {
               console.log("spawn:", spawn);
