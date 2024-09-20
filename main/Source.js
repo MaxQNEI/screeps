@@ -26,7 +26,13 @@ class XSource {
         for (const [dx, dy] of this.offsets) {
             const look = this.source.room.lookAt(dx + x, dy + y);
 
-            const ok = look.some(({ type, terrain }) => {
+            const ok = look.some((data) => {
+                const { type, terrain } = data;
+
+                if (dx + x === 6 && dy + y === 44) {
+                    console.log(JSON.stringify(data));
+                }
+
                 // When it's plain or swamp terrain
                 if (
                     type === "terrain" &&
@@ -39,8 +45,6 @@ class XSource {
                 if (type === "creep") {
                     return true;
                 }
-
-                console.log(type, terrain);
 
                 return false;
             });
