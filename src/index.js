@@ -43,6 +43,7 @@ export default function loop() {
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 if (!creep.memory.sourceId) {
                     const sources = creepSourcesByDistance(creep);
+                    dump(sources[0]);
                     creep.memory.sourceId = sources[0].id;
                 }
 
