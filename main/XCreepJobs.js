@@ -1,6 +1,6 @@
-class XCreepJobs {
-    constructor() {}
+const { ROLES } = require("./const");
 
+class XCreepJobs {
     findJobByRole() {
         if (this.getJob()) {
             return;
@@ -38,15 +38,17 @@ class XCreepJobs {
     }
 
     doJob() {
-        if (!this.job) {
+        if (!this.getJob()) {
             return false;
         }
 
-        const jobMtdName = this.jobNameToMethod(this.job);
+        const jobMtdName = this.jobNameToMethod(this.getJob());
 
         if (!this[jobMtdName]) {
             console.log(
-                `${this.creep.name}: unknown job method "${jobMtdName}"`
+                `${
+                    this.creep.name
+                }: unknown job method "${jobMtdName}" (of "${this.getJob()}")`
             );
 
             return false;
@@ -101,12 +103,8 @@ class XCreepJobs {
     // Helpers
     jobNameToMethod(name) {
         return `Job-${name}`
-            .split(/[^\da-z]+/gi, "")
+            .split(/[^\da-z]/i)
             .map((piece, index) => {
-                if (index === 0) {
-                    return piece;
-                }
-
                 return `${piece[0].toUpperCase()}${piece
                     .slice(1)
                     .toLowerCase()}`;

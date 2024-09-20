@@ -88,6 +88,12 @@ class XGame {
 
     //
     update() {
+        for (const creepName in Memory.creeps) {
+            if (!Game.creeps[creepName]) {
+                delete Memory.creeps[creepName];
+            }
+        }
+
         this.sources((source, room) => {
             const xSource = new XSource(source);
 
