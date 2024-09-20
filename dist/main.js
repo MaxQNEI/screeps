@@ -41,10 +41,11 @@
             return;
           }
           let result;
-          creep.say(`H:${result = creep.harvest(source)}`);
+          result = creep.harvest(source);
+          result !== OK && creep.say(`H:${result}`);
           if (result === ERR_NOT_IN_RANGE) {
-            console.log(typeof source, source);
-            creep.say(`M:${result = creep.moveTo(source)}`);
+            result = creep.moveTo(source);
+            result !== OK && creep.say(`M:${result}`);
           }
         }
       }
