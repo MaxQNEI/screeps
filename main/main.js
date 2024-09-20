@@ -1,11 +1,11 @@
 console.log("Load at", new Date().toString());
 
-const Rooms = require("./Rooms");
-const Source = require("./Source");
+const XRooms = require("./Rooms");
+const XSource = require("./Source");
 
-const rooms = new Rooms();
-rooms.sources(function (source, room) {
-    const _source = new Source(source);
+const _rooms = new XRooms();
+_rooms.sources(function (source, room) {
+    const _source = new XSource(source);
 
     room.memory.sources = room.memory.sources || {};
     room.memory.sources[source.id] = {
