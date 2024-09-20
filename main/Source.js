@@ -29,7 +29,7 @@ class XSource {
             const ok = look.some((data) => {
                 const { type, terrain } = data;
 
-                if (dx + x === 6 && dy + y === 44) {
+                if (x === 6 && y === 44) {
                     console.log(JSON.stringify(data));
                 }
 
