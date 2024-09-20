@@ -20,6 +20,8 @@ function creepSourcesByDistance(creep) {
     return sources;
 }
 
+console.log(`Load`);
+
 export default function loop() {
     // Spawn exists?
     {

@@ -12,6 +12,7 @@
     }
     return sources;
   }
+  console.log(`Load`);
   module.exports.loop = function loop() {
     {
       if (Object.keys(Game.spawns).length === 0) {
