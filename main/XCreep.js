@@ -24,19 +24,6 @@ class XCreep {
         return this;
     }
 
-    canSpawn() {
-        const xRoom = new XRoom(this.room);
-
-        let spawn = null;
-        xRoom.spawns((_spawn) => {
-            if (this._spawn(true)) {
-                spawn = _spawn;
-            }
-        });
-
-        return can;
-    }
-
     spawn() {
         const spawn = this.getPossibleSpawn();
 
