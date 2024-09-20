@@ -8,13 +8,6 @@ function creepSourcesByDistance(creep) {
         .sort(({ distance: a }, { distance: b }) => {
             return a === b ? 0 : a > b ? 1 : -1;
         })
-        .map((source) => {
-            console.log(
-                `${source.source.pos.x}x${source.source.pos.y}`,
-                source.distance
-            );
-            return source;
-        })
         .map((source) => source);
 
     function _distance(startPoint, endPoint) {
@@ -48,7 +41,7 @@ export default function loop() {
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 if (!creep.memory.source) {
                     const sources = creepSourcesByDistance(creep);
-                    console.log(JSON.stringify(sources[0]));
+                    creep.memory.source = sources[0];
                 }
             }
         }
