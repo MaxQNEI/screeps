@@ -32,7 +32,6 @@
             console.log(JSON.stringify(sources[0]));
             creep.memory.source = sources[0];
           }
-          console.log(JSON.stringify(creep.memory.source));
           if (creep.harvest(creep.memory.source) === ERR_NOT_IN_RANGE) {
             creep.move(creep.memory.source);
           }
