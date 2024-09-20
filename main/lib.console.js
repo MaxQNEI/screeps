@@ -54,4 +54,19 @@ function dump() {
     console.log(out.join("\n"));
 }
 
+function log(prefix) {
+    return function log() {
+        const args = [];
+
+        prefix && args.push(prefix);
+
+        for (const arg of arguments) {
+            args.push(arg);
+        }
+
+        console.log(...args);
+    };
+}
+
 module.exports.dump = dump;
+module.exports.log = log;

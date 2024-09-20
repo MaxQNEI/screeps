@@ -29,10 +29,10 @@ class XCreepJobs {
                         spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
                     ) {
                         this.setJob("transfer-spawn");
-                        break;
+                        return;
                     } else if (construction) {
                         this.setJob("build-construction");
-                        break;
+                        return;
                     }
                 }
             }
@@ -98,7 +98,20 @@ class XCreepJobs {
         }
     }
 
-    JobTransferSpawn() {}
+    JobTransferSpawn() {
+        if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+            this.setJob(null);
+            return;
+        }
+
+        const xRoom = new XRoom(this.creep.room);
+        for (const spawn of xRoom.spawns()) {
+            if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                this.transfer(spawn);
+                return;
+            }
+        }
+    }
 
     JobBuildConstruction() {}
 

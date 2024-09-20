@@ -1,8 +1,5 @@
-const { ROLES } = require("./const");
-const { dump } = require("./lib.dump");
 const XCreepJobs = require("./XCreepJobs");
 const XRoom = require("./XRoom");
-const XSource = require("./XSource");
 
 class XCreep extends XCreepJobs {
     creep = null;
@@ -98,24 +95,24 @@ class XCreep extends XCreepJobs {
     }
 
     harvest(to) {
-        console.log(`${this.creep.name}: harvest()`);
-
         if (this.creep.harvest(to) === ERR_NOT_IN_RANGE) {
             this.move(to);
         }
     }
 
-    build(to) {
-        console.log(`${this.creep.name}: build()`);
+    transfer(to, type = RESOURCE_ENERGY) {
+        if (this.creep.transfer(to, type) === ERR_NOT_IN_RANGE) {
+            this.move(to);
+        }
+    }
 
+    build(to) {
         if (this.creep.build(to) === ERR_NOT_IN_RANGE) {
             this.move(to);
         }
     }
 
     upgradeController(to) {
-        console.log(`${this.creep.name}: upgradeController()`);
-
         if (this.creep.upgradeController(to) === ERR_NOT_IN_RANGE) {
             this.move(to);
         }
@@ -127,15 +124,37 @@ class XCreep extends XCreepJobs {
             return false;
         }
 
-        const moveCoords = `${to.pos.x}x${to.pos.y}`;
-        if (this.creep.memory.moveCoords !== moveCoords) {
-            this.creep.memory.path = this.creep.pos.findPathTo(to);
-            this.creep.memory.moveCoords = moveCoords;
-        }
+        this.creep.moveTo(to);
 
-        if (this.creep.memory.path) {
-            this.creep.moveByPath(this.creep.memory.path);
-        }
+        // const moveCoords = `${to.pos.x}x${to.pos.y}`;
+        // if (
+        //     !this.creep.memory.path ||
+        //     this.creep.memory.moveCoords !== moveCoords
+        // ) {
+        //     this.creep.memory.path = this.creep.pos.findPathTo(to, {
+        //         maxOps: 100,
+        //     });
+
+        //     this.creep.memory.moveCoords = moveCoords;
+
+        //     console.log(
+        //         `${this.creep.name}: New path (${this.creep.memory.path.length}):`,
+        //         this.creep.memory.path
+        //             .map(({ x, y }) => `${x}x${y}`)
+        //             .join(" -> ")
+        //     );
+        // }
+
+        // if (this.creep.memory.path) {
+        //     const result = this.creep.moveByPath(this.creep.memory.path);
+        //     if (result !== OK) {
+        //         console.log(`${this.creep.name} moveByPath result:`, result);
+        //     }
+
+        //     if (result === ERR_NOT_FOUND) {
+        //         this.creep.memory.path = null;
+        //     }
+        // }
     }
 
     setJob(job) {
