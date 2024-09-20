@@ -39,5 +39,7 @@ import { exec } from "child_process";
                 }
             );
         });
+
+        console.log(`Git-push done`);
     }
 }
