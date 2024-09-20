@@ -11,7 +11,6 @@ import { exec } from "child_process";
         sourcemap: false,
         target: ["chrome58", "firefox57", "safari11", "edge16"],
         outfile: "dist/main.js",
-        format: "cjs",
         logLevel: "info",
     });
 
@@ -39,7 +38,5 @@ import { exec } from "child_process";
                 }
             );
         });
-
-        console.log(`Git-push done`);
     }
 }
