@@ -43,6 +43,13 @@ export default function loop() {
 
         if (!creep.memory.job) {
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                creep.memory.job = "harvest-energy";
+            }
+        } else if (creep.memory.job === "harvest-energy") {
+            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+                delete creep.memory.sourceId;
+                creep.memory.job = "transfer-energy";
+            } else {
                 if (!creep.memory.sourceId) {
                     const sources = creepSourcesByDistance(creep);
                     creep.memory.sourceId = sources[0].id;
@@ -69,6 +76,43 @@ export default function loop() {
                     result = creep.moveTo(source);
                     result !== OK && creep.say(`M:${result}`);
                 }
+            }
+        } else if (creep.memory.job === "transfer-energy") {
+            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+                delete creep.memory.sourceId;
+                creep.memory.job = "transfer-energy";
+            } else {
+                if (!creep.memory.spawnId) {
+                    // const sources = creepSourcesByDistance(creep);
+                    // creep.memory.sourceId = sources[0].id;
+
+                    const result = creep.find(FIND_MY_SPAWNS);
+                    for (const spawn of result) {
+                        console.log("spawn:", spawn);
+                    }
+                }
+
+                // if (!creep.memory.sourceId) {
+                //     creep.say(":( #1");
+                //     return;
+                // }
+
+                // const source = Game.getObjectById(creep.memory.sourceId);
+
+                // if (!source) {
+                //     creep.say(":( #2");
+                //     return;
+                // }
+
+                // let result;
+
+                // result = creep.harvest(source);
+                // result !== OK && creep.say(`H:${result}`);
+
+                // if (result === ERR_NOT_IN_RANGE) {
+                //     result = creep.moveTo(source);
+                //     result !== OK && creep.say(`M:${result}`);
+                // }
             }
         }
     }

@@ -27,6 +27,13 @@
       const creep = Game.creeps.Harvester1;
       if (!creep.memory.job) {
         if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+          creep.memory.job = "harvest-energy";
+        }
+      } else if (creep.memory.job === "harvest-energy") {
+        if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+          delete creep.memory.sourceId;
+          creep.memory.job = "transfer-energy";
+        } else {
           if (!creep.memory.sourceId) {
             const sources = creepSourcesByDistance(creep);
             creep.memory.sourceId = sources[0].id;
@@ -46,6 +53,18 @@
           if (result === ERR_NOT_IN_RANGE) {
             result = creep.moveTo(source);
             result !== OK && creep.say(`M:${result}`);
+          }
+        }
+      } else if (creep.memory.job === "transfer-energy") {
+        if (creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+          delete creep.memory.sourceId;
+          creep.memory.job = "transfer-energy";
+        } else {
+          if (!creep.memory.spawnId) {
+            const result = creep.find(FIND_MY_SPAWNS);
+            for (const spawn of result) {
+              console.log("spawn:", spawn);
+            }
           }
         }
       }
