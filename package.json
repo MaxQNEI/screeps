@@ -1,24 +1,23 @@
 {
     "name": "screeps",
     "version": "1.0.0",
-    "type": "commonjs",
+    "type": "module",
     "main": "main.js",
-    "directories": {
-        "lib": "lib"
-    },
-    "scripts": {
-        "pushc": "git status; git add .; git status; read -p 'Enter to continue...'; git commit -m 'auto-push'; git push",
-        "push": "git status; git add .; git status; git commit -m 'auto-push'; git push"
-    },
+    "author": "MaxQNEI <maxqnei@gmail.com>",
+    "license": "ISC",
+    "homepage": "https://github.com/MaxQNEI/screeps#readme",
+    "description": "",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/MaxQNEI/screeps.git"
     },
-    "author": "MaxQNEI <maxqnei@gmail.com>",
-    "license": "ISC",
     "bugs": {
         "url": "https://github.com/MaxQNEI/screeps/issues"
     },
-    "homepage": "https://github.com/MaxQNEI/screeps#readme",
-    "description": ""
+    "scripts": {
+        "build": "node esbuild.js"
+    },
+    "dependencies": {
+        "esbuild": "^0.23.1"
+    }
 }
