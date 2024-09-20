@@ -26,13 +26,8 @@ class XSource {
         for (const [dx, dy] of this.offsets) {
             const look = this.source.room.lookAt(dx + x, dy + y);
 
-            console.log(`${dx}x${dy}`);
             const ok = look.some((data) => {
                 const { type, terrain } = data;
-
-                if (x === 6 && y === 44) {
-                    console.log(JSON.stringify(data));
-                }
 
                 // When it's plain or swamp terrain
                 if (
@@ -52,6 +47,8 @@ class XSource {
 
             limit += ok ? 1 : 0;
         }
+
+        console.log(`${x}x${y} ${limit}`);
 
         return limit;
     }
