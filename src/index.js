@@ -66,7 +66,7 @@ export default function loop() {
 
                 if (result === ERR_NOT_IN_RANGE) {
                     console.log(typeof source, source);
-                    creep.say(`M:${(result = creep.move(source))}`);
+                    creep.say(`M:${(result = creep.moveTo(source))}`);
                 }
             }
         }
