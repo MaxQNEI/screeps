@@ -12,6 +12,14 @@ import { exec } from "child_process";
         target: ["chrome58", "firefox57", "safari11", "edge16"],
         outfile: "dist/main.js",
         logLevel: "info",
+        plugins: [
+            {
+                name: "env",
+                setup(build) {
+                    build.onResolve;
+                },
+            },
+        ],
     });
 
     await context.watch();

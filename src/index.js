@@ -1,3 +1,1 @@
-export const loop = function loop() {
-    console.log("tick");
-};
+import loop from "./main";
