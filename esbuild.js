@@ -16,7 +16,9 @@ import { exec } from "child_process";
             {
                 name: "env",
                 setup(build) {
-                    build.onResolve;
+                    build.onEnd((result) => {
+                        console.log(result);
+                    });
                 },
             },
         ],
