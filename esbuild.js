@@ -72,10 +72,10 @@ const context = await ESBUILD.context({
         {
             name: "git-push",
             setup(build) {
-                let now, spentBuild, spentPush;
+                let start, buildEnd, pushEnd;
 
                 build.onStart(() => {
-                    now = Date.now();
+                    start = new Date();
                 });
 
                 build.onEnd(async (result) => {
@@ -83,15 +83,20 @@ const context = await ESBUILD.context({
                         return;
                     }
 
-                    spentBuild = Date.now() - now;
-
-                    now = Date.now();
+                    buildEnd = new Date();
 
                     await UpdateNPush();
 
-                    spentPush = Date.now() - now;
+                    pushEnd = new Date();
 
-                    TABLE(["Start, Build, Push".split(", "), []]);
+                    TABLE([
+                        "Start, Build, Push".split(", "),
+                        [
+                            start.format(),
+                            start.diff(buildEnd),
+                            start.diff(pushEnd),
+                        ],
+                    ]);
                 });
             },
         },
