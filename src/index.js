@@ -6,7 +6,7 @@ const CASES = {
 
 function Friend(cases = [HARVEST_TO_SPAWN]) {}
 
-export default function loop() {
+export default function loop() {123;
     // for spawn next friends
     // Friend([HARVEST_TO_SPAWN]);
 
