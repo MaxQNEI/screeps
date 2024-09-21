@@ -2,6 +2,25 @@ import CHILD_PROCESS from "child_process";
 import * as ESBUILD from "esbuild";
 import FSP from "fs/promises";
 
+let PushCounter;
+
+await LoadPushCounter();
+await SavePushCounter();
+
+async function LoadPushCounter() {
+    return (PushCounter = parseInt(
+        await FSP.readFile("./push-counter.json", {
+            encoding: "utf-8",
+        }).catch(() => 1)
+    ));
+}
+
+async function SavePushCounter() {
+    return await FSP.writeFile("./push-counter.json", PushCounter.toString(), {
+        encoding: "utf-8",
+    });
+}
+
 async function UpdateNPush() {
     return await new Promise(async (resolve) => {
         const body = (
@@ -11,8 +30,10 @@ async function UpdateNPush() {
         await FSP.writeFile("dist/main.js", body, { encoding: "utf-8" });
 
         CHILD_PROCESS.exec(
-            `git add .; git commit -m "esbuild-git-push"; git push`,
-            (error, stdout, stderr) => {
+            `git add .; git commit -m "esbuild-git-push #${(
+                PushCounter + 1
+            ).toString()}"; git push`,
+            async (error, stdout, stderr) => {
                 if (error) {
                     console.error(`exec error: ${error}`);
                     return;
@@ -22,6 +43,9 @@ async function UpdateNPush() {
                 // console.error(`stderr: ${stderr}`);
 
                 console.log(`Done: UpdateNPush`);
+
+                PushCounter += 1;
+                await SavePushCounter();
 
                 resolve();
             }
