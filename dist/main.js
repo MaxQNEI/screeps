@@ -8,7 +8,6 @@
   function Friend(cases = [HARVEST_TO_SPAWN]) {
   }
   module.exports.loop = function loop() {
-    123;
     Friend([
       CASES.HARVEST_TO_SPAWN,
       CASES.HARVEST_TO_BUILD,
