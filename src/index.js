@@ -15,9 +15,9 @@ function SourcesByDistance(creep) {
             origin: source,
             distance: _distance(creep.pos, source.pos),
         }))
-        .sort(({ distance: a }, { distance: b }) => {
-            return a === b ? 0 : a > b ? 1 : -1;
-        })
+        .sort(({ distance: a }, { distance: b }) =>
+            a === b ? 0 : a > b ? 1 : -1
+        )
         .map(({ origin }) => origin);
 
     return sources;
@@ -46,9 +46,9 @@ function ConstructionSitesByDistance(creep) {
             origin: constructionSite,
             distance: _distance(creep.pos, constructionSite.pos),
         }))
-        .sort(({ distance: a }, { distance: b }) => {
-            return a === b ? 0 : a > b ? 1 : -1;
-        })
+        .sort(({ distance: a }, { distance: b }) =>
+            a === b ? 0 : a > b ? 1 : -1
+        )
         .map(({ origin }) => origin);
 
     return constructionSites;

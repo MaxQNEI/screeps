@@ -7,9 +7,9 @@
     const sources = creep.room.find(FIND_SOURCES).map((source) => ({
       origin: source,
       distance: _distance(creep.pos, source.pos)
-    })).sort(({ distance: a }, { distance: b }) => {
-      return a === b ? 0 : a > b ? 1 : -1;
-    }).map(({ origin }) => origin);
+    })).sort(
+      ({ distance: a }, { distance: b }) => a === b ? 0 : a > b ? 1 : -1
+    ).map(({ origin }) => origin);
     return sources;
   }
   function FindSpawnWithFreeCapacity(creep) {
@@ -23,9 +23,9 @@
     const constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
       origin: constructionSite,
       distance: _distance(creep.pos, constructionSite.pos)
-    })).sort(({ distance: a }, { distance: b }) => {
-      return a === b ? 0 : a > b ? 1 : -1;
-    }).map(({ origin }) => origin);
+    })).sort(
+      ({ distance: a }, { distance: b }) => a === b ? 0 : a > b ? 1 : -1
+    ).map(({ origin }) => origin);
     return constructionSites;
   }
   module.exports.loop = function loop() {
