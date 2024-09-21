@@ -74,6 +74,7 @@ function Unit(name = "Bunny", room, cases = []) {
 }
 
 export default function loop() {
+    return;
     // Every room
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
