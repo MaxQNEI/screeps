@@ -1,6 +1,7 @@
 import * as ESBUILD from "esbuild";
 import FSP from "fs/promises";
 import CHILD_PROCESS from "child_process";
+import { error } from "console";
 
 // Esbuild
 {
@@ -12,42 +13,49 @@ import CHILD_PROCESS from "child_process";
         // target: ["chrome58", "firefox57", "safari11", "edge16"],
         outfile: "dist/main.js",
         logLevel: "info",
+
+        plugins: [
+            {
+                name: "git-push",
+                setup(build) {
+                    build.onEnd(async (result) => {
+                        if (error.length > 0) {
+                            return;
+                        }
+
+                        await UpdateNPush();
+                    });
+                },
+            },
+        ],
     });
 
     await context.watch();
 }
 
-// Git push
-{
-    const watcher = FSP.watch("dist/main.js");
+async function UpdateNPush() {
+    return await new Promise(async (resolve) => {
+        const body = (
+            await FSP.readFile("dist/main.js", { encoding: "utf-8" })
+        ).replace(/^(\s+)(function loop\(\) {)/m, "$1module.exports.loop = $2");
 
-    for await (const event of watcher) {
-        await new Promise(async (resolve) => {
-            const body = (
-                await FSP.readFile("dist/main.js", { encoding: "utf-8" })
-            ).replace(
-                /^(\s+)(function loop\(\) {)/m,
-                "$1module.exports.loop = $2"
-            );
+        await FSP.writeFile("dist/main.js", body, { encoding: "utf-8" });
 
-            await FSP.writeFile("dist/main.js", body, { encoding: "utf-8" });
-
-            CHILD_PROCESS.exec(
-                `git add .; git commit -m "esbuild-git-push"; git push`,
-                (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`exec error: ${error}`);
-                        return;
-                    }
-
-                    // console.log(`stdout: ${stdout}`);
-                    // console.error(`stderr: ${stderr}`);
-
-                    console.log(`Git done.`);
-
-                    resolve();
+        CHILD_PROCESS.exec(
+            `git add .; git commit -m "esbuild-git-push"; git push`,
+            (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`exec error: ${error}`);
+                    return;
                 }
-            );
-        });
-    }
+
+                // console.log(`stdout: ${stdout}`);
+                // console.error(`stderr: ${stderr}`);
+
+                console.log(`Done: UpdateNPush`);
+
+                resolve();
+            }
+        );
+    });
 }
