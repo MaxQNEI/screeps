@@ -49,7 +49,7 @@ async function UpdateNPush() {
                 // console.log(`stdout: ${stdout}`);
                 // console.error(`stderr: ${stderr}`);
 
-                if (stderr.indexOf("Everything up-to-date") !== -1) {
+                if (stderr.indexOf("Everything up-to-date") === -1) {
                     console.log(`<"${msg}">`);
 
                     PushCounter += 1;
