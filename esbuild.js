@@ -12,7 +12,7 @@ async function LoadPushCounter() {
     return (PushCounter = parseInt(
         await FSP.readFile("./push-counter.json", {
             encoding: "utf-8",
-        }).catch(() => 1)
+        }).catch(() => 0)
     ));
 }
 
