@@ -86,6 +86,7 @@ export default function loop() {
                 console.log("!", creep.memory.transferId);
 
                 if (!creep.memory.transferId) {
+                    // To spawn
                     {
                         const spawns = creep.room.find(FIND_MY_SPAWNS);
 
@@ -107,6 +108,8 @@ export default function loop() {
                         }
                     }
                 }
+
+                console.log("-", creep.memory.transferId);
 
                 if (!creep.memory.transferId) {
                     creep.say(":( #1");

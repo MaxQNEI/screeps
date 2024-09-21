@@ -81,6 +81,7 @@
               }
             }
           }
+          console.log("-", creep.memory.transferId);
           if (!creep.memory.transferId) {
             creep.say(":( #1");
             return;
