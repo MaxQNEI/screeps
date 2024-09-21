@@ -96,11 +96,12 @@ const context = await ESBUILD.context({
                         "Start, Build, Push, Total".split(", "),
                         [
                             start.format(),
-                            start.diff(buildEnd),
-                            pushEnd ? start.diff(pushEnd) : pushEnd,
+                            start.diff(buildEnd) + "ms",
+                            (pushEnd ? start.diff(pushEnd) : pushEnd) + "ms",
 
                             start.diff(buildEnd) +
-                                (pushEnd ? start.diff(pushEnd) : 0),
+                                (pushEnd ? start.diff(pushEnd) : 0) +
+                                "ms",
                         ],
                     ]);
                 });
