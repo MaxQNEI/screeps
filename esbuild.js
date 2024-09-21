@@ -100,7 +100,12 @@ const context = await ESBUILD.context({
                             start.format(),
                             start.diff(buildEnd),
                             pushEnd ? start.diff(pushEnd) : pushEnd,
-                            start.diff(buildEnd - 0 + (pushEnd ?? 0) - 0),
+
+                            start.diff(
+                                start.diff(buildEnd) + pushEnd
+                                    ? start.diff(pushEnd)
+                                    : 0
+                            ),
                         ],
                     ]);
                 });
