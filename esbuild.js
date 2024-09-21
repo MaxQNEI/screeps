@@ -93,11 +93,12 @@ const context = await ESBUILD.context({
                     (await UpdateNPush()) && (pushEnd = new Date());
 
                     TABLE([
-                        "Start, Build, Push".split(", "),
+                        "Start, Build, Push, Total".split(", "),
                         [
                             start.format(),
                             start.diff(buildEnd),
                             pushEnd ? start.diff(pushEnd) : pushEnd,
+                            start.diff(buildEnd + pushEnd),
                         ],
                     ]);
                 });
