@@ -76,9 +76,11 @@
                   break;
                 }
               }
-              if (!creep.memory.transferId) {
-                creep.memory.transferId = spawns[0].id;
-              }
+            }
+            {
+              const constructions = creep.room.find(
+                FIND_CONSTRUCTION_SITES
+              );
             }
           }
           console.log("-", creep.memory.transferId);

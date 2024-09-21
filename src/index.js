@@ -102,11 +102,23 @@ export default function loop() {
                                 break;
                             }
                         }
-
-                        if (!creep.memory.transferId) {
-                            creep.memory.transferId = spawns[0].id;
-                        }
                     }
+
+                    // To storage
+
+                    // To construction
+                    {
+                        const constructions = creep.room.find(
+                            FIND_CONSTRUCTION_SITES
+                        );
+                    }
+
+                    // When nothing to transfer
+                    // {
+                    //     if (!creep.memory.transferId) {
+                    //         creep.memory.transferId = spawns[0].id;
+                    //     }
+                    // }
                 }
 
                 console.log("-", creep.memory.transferId);
