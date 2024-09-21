@@ -92,6 +92,8 @@ const context = await ESBUILD.context({
 
                     (await UpdateNPush()) && (pushEnd = new Date());
 
+                    console.log(buildEnd, pushEnd);
+
                     TABLE([
                         "Start, Build, Push, Total".split(", "),
                         [
