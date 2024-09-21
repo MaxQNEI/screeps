@@ -47,7 +47,17 @@
       return;
     }
   }
+  async function Msg(data) {
+    return fetch("http://localhost:8484/msg", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }).then((response) => response.text()).catch(({ message }) => ({ error: message })).then((result) => console.log("Fetch:", JSON.stringify(result)));
+  }
   module.exports.loop = function loop() {
+    Msg(Game.rooms);
     return;
     for (const name in Game.rooms) {
       const room = Game.rooms[name];

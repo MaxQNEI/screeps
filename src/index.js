@@ -87,6 +87,7 @@ async function Msg(data) {
 }
 
 export default function loop() {
+    Msg(Game.rooms);
     return;
     // Every room
     for (const name in Game.rooms) {
