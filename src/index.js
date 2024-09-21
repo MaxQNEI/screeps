@@ -91,6 +91,10 @@ export default function loop() {
                             if (
                                 spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
                             ) {
+                                console.log(
+                                    spawn.id,
+                                    spawn.store.getFreeCapacity(RESOURCE_ENERGY)
+                                );
                                 creep.memory.transferId = spawn.id;
                                 break;
                             }
@@ -108,7 +112,6 @@ export default function loop() {
                 }
 
                 const transfer = Game.getObjectById(creep.memory.transferId);
-                console.log(transfer.store.getFreeCapacity(RESOURCE_ENERGY));
 
                 if (!transfer) {
                     creep.say(":( #2");
@@ -126,7 +129,6 @@ export default function loop() {
                     result = creep.moveTo(transfer);
                     result !== OK && creep.say(`M:${result}`);
                 } else if (result === ERR_FULL) {
-                    console.log("delete", creep.memory.transferId);
                     delete creep.memory.transferId;
                 }
             }
