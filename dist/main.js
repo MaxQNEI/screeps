@@ -1,4 +1,27 @@
 (() => {
+  // src/lib/distance.js
+  function distance(startPoint, endPoint) {
+    return Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2);
+  }
+
+  // src/lib/creep/index.js
+  function SourcesByDistance(creep) {
+    const sources = creep.room.find(FIND_SOURCES).map((source) => ({
+      origin: source,
+      distance: distance(creep.pos, source.pos)
+    })).sort(
+      ({ distance: a }, { distance: b }) => a === b ? 0 : a > b ? 1 : -1
+    ).map(({ origin }) => origin);
+    return sources;
+  }
+  function FindSpawnWithFreeCapacity(creep) {
+    const spawns = creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
+      origin: spawn,
+      free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+    })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => a === b ? 0 : a > b ? 1 : -1).map(({ origin }) => origin);
+    return spawns;
+  }
+
   // src/roles/Harvester1.js
   function Harvester1(name) {
     if (!Game.creeps[name]) {

@@ -1,3 +1,8 @@
+import {
+    FindSpawnWithFreeCapacity,
+    SourcesByDistance
+} from "../lib/creep";
+
 export default function Harvester1(name) {
     if (!Game.creeps[name]) {
         const spawn = Object.values(Game.spawns)[0];
