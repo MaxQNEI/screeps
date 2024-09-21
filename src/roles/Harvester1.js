@@ -1,7 +1,4 @@
-import {
-    FindSpawnWithFreeCapacity,
-    SourcesByDistance
-} from "../lib/creep";
+import { FindSpawnWithFreeCapacity, SourcesByDistance } from "../lib/creep";
 
 export default function Harvester1(name) {
     if (!Game.creeps[name]) {
@@ -10,6 +7,10 @@ export default function Harvester1(name) {
     }
 
     const creep = Game.creeps[name];
+
+    if (!creep) {
+        return;
+    }
 
     if (!creep.memory.job) {
         if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {

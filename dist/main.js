@@ -29,6 +29,9 @@
       spawn.spawnCreep([WORK, CARRY, MOVE], "Harvester1", { memory: {} });
     }
     const creep = Game.creeps[name];
+    if (!creep) {
+      return;
+    }
     if (!creep.memory.job) {
       if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
         creep.memory.job = "harvest-energy";
