@@ -53,7 +53,7 @@ export default function Harvester1(name) {
         }
     } else if (creep.memory.job === "transfer-energy") {
         if (creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-            delete creep.memory.spawnId;
+            delete creep.memory.transferId;
             delete creep.memory.job;
         } else {
             if (!creep.memory.transferId) {
