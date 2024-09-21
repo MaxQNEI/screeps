@@ -1,37 +1,6 @@
+import CHILD_PROCESS from "child_process";
 import * as ESBUILD from "esbuild";
 import FSP from "fs/promises";
-import CHILD_PROCESS from "child_process";
-import { error } from "console";
-
-// Esbuild
-{
-    const context = await ESBUILD.context({
-        entryPoints: ["src/index.js"],
-        bundle: true,
-        minify: false,
-        sourcemap: false,
-        // target: ["chrome58", "firefox57", "safari11", "edge16"],
-        outfile: "dist/main.js",
-        logLevel: "info",
-
-        plugins: [
-            {
-                name: "git-push",
-                setup(build) {
-                    build.onEnd(async (result) => {
-                        if (result.errors.length > 0) {
-                            return;
-                        }
-
-                        await UpdateNPush();
-                    });
-                },
-            },
-        ],
-    });
-
-    await context.watch();
-}
 
 async function UpdateNPush() {
     return await new Promise(async (resolve) => {
@@ -59,3 +28,30 @@ async function UpdateNPush() {
         );
     });
 }
+
+const context = await ESBUILD.context({
+    entryPoints: ["src/index.js"],
+    bundle: true,
+    minify: false,
+    sourcemap: false,
+    // target: ["chrome58", "firefox57", "safari11", "edge16"],
+    outfile: "dist/main.js",
+    logLevel: "info",
+
+    plugins: [
+        {
+            name: "git-push",
+            setup(build) {
+                build.onEnd(async (result) => {
+                    if (result.errors.length > 0) {
+                        return;
+                    }
+
+                    await UpdateNPush();
+                });
+            },
+        },
+    ],
+});
+
+await context.watch();
