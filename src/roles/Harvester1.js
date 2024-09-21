@@ -21,7 +21,13 @@ export default function Harvester1(name) {
             creep.pos,
             STRUCTURE_ROAD
         );
-        console.log("createConstructionSite", result);
+
+        if (result !== OK && result !== ERR_INVALID_TARGET) {
+            console.log(
+                `createConstructionSite(${creep.pos.x}x${creep.pos.y}) result:`,
+                result
+            );
+        }
     }
 
     if (!creep.memory.job) {
