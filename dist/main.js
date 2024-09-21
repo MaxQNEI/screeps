@@ -62,6 +62,7 @@
           delete creep.memory.spawnId;
           delete creep.memory.job;
         } else {
+          console.log(creep.memory.transferId);
           if (!creep.memory.transferId) {
             {
               const spawns = creep.room.find(FIND_MY_SPAWNS);
