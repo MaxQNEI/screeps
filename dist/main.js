@@ -62,7 +62,7 @@
         creep.say(`?${creep.store.getUsedCapacity(RESOURCE_ENERGY)}`);
         if (creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
           delete creep.memory.spawnId;
-          creep.memory.job = "transfer-energy";
+          delete creep.memory.job;
         } else {
           if (!creep.memory.transferId) {
             {
