@@ -15,7 +15,7 @@
   function FindSpawnWithFreeCapacity(creep) {
     const spawns = creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
       origin: spawn,
-      free: spawn.getFreeCapacity(RESOURCE_ENERGY) > 0
+      free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
     })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => a === b ? 0 : a > b ? 1 : -1).map(({ origin }) => origin);
     return spawns;
   }
