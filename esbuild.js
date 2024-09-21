@@ -88,24 +88,18 @@ const context = await ESBUILD.context({
                     }
 
                     buildEnd = new Date();
+                    pushEnd = null;
 
-                    if (await UpdateNPush()) {
-                        pushEnd = new Date();
+                    (await UpdateNPush()) && (pushEnd = new Date());
 
-                        TABLE([
-                            "Start, Build, Push".split(", "),
-                            [
-                                start.format(),
-                                start.diff(buildEnd),
-                                start.diff(pushEnd),
-                            ],
-                        ]);
-                    } else {
-                        TABLE([
-                            "Start, Build".split(", "),
-                            [start.format(), start.diff(buildEnd)],
-                        ]);
-                    }
+                    TABLE([
+                        "Start, Build, Push".split(", "),
+                        [
+                            start.format(),
+                            start.diff(buildEnd),
+                            start.diff(pushEnd),
+                        ],
+                    ]);
                 });
             },
         },
