@@ -43,6 +43,8 @@ import CHILD_PROCESS from "child_process";
                     // console.log(`stdout: ${stdout}`);
                     // console.error(`stderr: ${stderr}`);
 
+                    console.log(`Git done.`);
+
                     resolve();
                 }
             );
