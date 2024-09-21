@@ -35,7 +35,7 @@ async function UpdateNPush() {
         }> esbuild-git-push #${PushCounter + 1}`;
 
         CHILD_PROCESS.exec(
-            `git add .; git commit -m "${msg}"; git push`,
+            `git status; git add .; git commit -m "${msg}"; git push`,
             async (error, stdout, stderr) => {
                 if (error) {
                     console.error(`exec error: ${error}`);
