@@ -62,7 +62,7 @@
           delete creep.memory.spawnId;
           delete creep.memory.job;
         } else {
-          console.log(creep.memory.transferId);
+          console.log("!", creep.memory.transferId);
           if (!creep.memory.transferId) {
             {
               const spawns = creep.room.find(FIND_MY_SPAWNS);
@@ -98,6 +98,7 @@
             result !== OK && creep.say(`M:${result}`);
           } else if (result === ERR_FULL) {
             delete creep.memory.transferId;
+            console.log("?", creep.memory.transferId);
           }
         }
       }
