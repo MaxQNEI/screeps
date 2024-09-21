@@ -42,6 +42,7 @@ async function UpdateNPush() {
             async (error, stdout, stderr) => {
                 if (error) {
                     console.error(`exec error: ${error}`);
+                    resolve(false);
                     return;
                 }
 
@@ -53,9 +54,11 @@ async function UpdateNPush() {
 
                     PushCounter += 1;
                     await SavePushCounter();
+
+                    resolve(true);
                 }
 
-                resolve();
+                resolve(false);
             }
         );
     });
@@ -86,18 +89,23 @@ const context = await ESBUILD.context({
 
                     buildEnd = new Date();
 
-                    await UpdateNPush();
+                    if (await UpdateNPush()) {
+                        pushEnd = new Date();
 
-                    pushEnd = new Date();
-
-                    TABLE([
-                        "Start, Build, Push".split(", "),
-                        [
-                            start.format(),
-                            start.diff(buildEnd),
-                            start.diff(pushEnd),
-                        ],
-                    ]);
+                        TABLE([
+                            "Start, Build, Push".split(", "),
+                            [
+                                start.format(),
+                                start.diff(buildEnd),
+                                start.diff(pushEnd),
+                            ],
+                        ]);
+                    } else {
+                        TABLE([
+                            "Start, Build".split(", "),
+                            [start.format(), start.diff(buildEnd)],
+                        ]);
+                    }
                 });
             },
         },
