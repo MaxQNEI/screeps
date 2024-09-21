@@ -2,8 +2,9 @@ import CHILD_PROCESS from "child_process";
 import * as ESBUILD from "esbuild";
 import FSP from "fs/promises";
 import OS from "os";
-import TABLE from "./lib/table.js";
+import "./lib/date.prototype.diff.js";
 import "./lib/date.prototype.format.js";
+import TABLE from "./lib/table.js";
 
 let PushCounter;
 
