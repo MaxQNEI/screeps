@@ -73,6 +73,11 @@ function Unit(name = "Bunny", room, cases = []) {
     }
 }
 
+fetch("http://localhost/x")
+    .then((response) => response.text())
+    .catch(({ message }) => ({ error: message }))
+    .then((result) => console.log("Fetch:", JSON.stringify(result)));
+
 export default function loop() {
     // Every room
     for (const name in Game.rooms) {
