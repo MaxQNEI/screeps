@@ -42,13 +42,15 @@ async function UpdateNPush() {
                     return;
                 }
 
-                console.log(`stdout: ${stdout}`);
-                console.error(`stderr: ${stderr}`);
+                // console.log(`stdout: ${stdout}`);
+                // console.error(`stderr: ${stderr}`);
 
-                console.log(`Done: UpdateNPush: "${msg}"`);
+                if (stderr.indexOf("Everything up-to-date") !== -1) {
+                    console.log(`Done: UpdateNPush: "${msg}"`);
 
-                PushCounter += 1;
-                await SavePushCounter();
+                    PushCounter += 1;
+                    await SavePushCounter();
+                }
 
                 resolve();
             }
