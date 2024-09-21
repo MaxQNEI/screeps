@@ -22,8 +22,6 @@ function creepSourcesByDistance(creep) {
     return sources;
 }
 
-console.log("".padStart(80, "="));
-
 export default function loop() {
     // Spawn exists?
     {

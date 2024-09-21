@@ -12,7 +12,6 @@
     }
     return sources;
   }
-  console.log("".padStart(80, "="));
   module.exports.loop = function loop() {
     {
       if (Object.keys(Game.spawns).length === 0) {
