@@ -3,7 +3,7 @@ import * as ESBUILD from "esbuild";
 import FSP from "fs/promises";
 import OS from "os";
 import TABLE from "./lib/table.js";
-import "./lib/date.prototype.fmt.js";
+import "./lib/date.prototype.format.js";
 
 let PushCounter;
 
