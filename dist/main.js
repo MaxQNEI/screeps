@@ -3,21 +3,21 @@
   var CASES = {
     HARVEST_TO_SPAWN: {
       body: {
-        [BODY]: 1,
+        [WORK]: 1,
         [CARRY]: 10,
         [MOVE]: 10
       }
     },
     HARVEST_TO_BUILD: {
       body: {
-        [BODY]: 1,
+        [WORK]: 1,
         [CARRY]: 10,
         [MOVE]: 10
       }
     },
     BUILD_THE_NEAREST: {
       body: {
-        [BODY]: 1,
+        [WORK]: 1,
         [CARRY]: 10,
         [MOVE]: 10
       }

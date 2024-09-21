@@ -1,7 +1,7 @@
 const CASES = {
     HARVEST_TO_SPAWN: {
         body: {
-            [BODY]: 1,
+            [WORK]: 1,
             [CARRY]: 10,
             [MOVE]: 10,
         },
@@ -9,7 +9,7 @@ const CASES = {
 
     HARVEST_TO_BUILD: {
         body: {
-            [BODY]: 1,
+            [WORK]: 1,
             [CARRY]: 10,
             [MOVE]: 10,
         },
@@ -17,7 +17,7 @@ const CASES = {
 
     BUILD_THE_NEAREST: {
         body: {
-            [BODY]: 1,
+            [WORK]: 1,
             [CARRY]: 10,
             [MOVE]: 10,
         },
