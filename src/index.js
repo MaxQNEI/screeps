@@ -79,6 +79,7 @@ fetch("http://localhost/x")
     .then((result) => console.log("Fetch:", JSON.stringify(result)));
 
 export default function loop() {
+    return;
     // Every room
     for (const name in Game.rooms) {
         const room = Game.rooms[name];

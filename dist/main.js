@@ -49,6 +49,7 @@
   }
   fetch("http://localhost/x").then((response) => response.text()).catch(({ message }) => ({ error: message })).then((result) => console.log("Fetch:", JSON.stringify(result)));
   module.exports.loop = function loop() {
+    return;
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
       Unit("Universal", room, [
