@@ -46,7 +46,7 @@ async function UpdateNPush() {
                 // console.error(`stderr: ${stderr}`);
 
                 if (stderr.indexOf("Everything up-to-date") !== -1) {
-                    console.log(`Done: UpdateNPush: "${msg}"`);
+                    console.log(`<"${msg}">`);
 
                     PushCounter += 1;
                     await SavePushCounter();
