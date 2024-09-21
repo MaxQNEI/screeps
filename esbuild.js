@@ -92,8 +92,6 @@ const context = await ESBUILD.context({
 
                     (await UpdateNPush()) && (pushEnd = new Date());
 
-                    console.log(buildEnd, pushEnd);
-
                     TABLE([
                         "Start, Build, Push, Total".split(", "),
                         [
@@ -102,9 +100,8 @@ const context = await ESBUILD.context({
                             pushEnd ? start.diff(pushEnd) : pushEnd,
 
                             start.diff(
-                                start.diff(buildEnd) + pushEnd
-                                    ? start.diff(pushEnd)
-                                    : 0
+                                start.diff(buildEnd) +
+                                    (pushEnd ? start.diff(pushEnd) : 0)
                             ),
                         ],
                     ]);
