@@ -56,9 +56,8 @@
       }
     }).then((response) => response.text()).catch(({ message }) => ({ error: message })).then((result) => console.log("Fetch:", JSON.stringify(result)));
   }
+  Msg(Game.rooms);
   module.exports.loop = function loop() {
-    Msg(Game.rooms);
-    return;
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
       Unit("Universal", room, [

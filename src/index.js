@@ -86,9 +86,9 @@ async function Msg(data) {
         .then((result) => console.log("Fetch:", JSON.stringify(result)));
 }
 
+Msg(Game.rooms);
+
 export default function loop() {
-    Msg(Game.rooms);
-    return;
     // Every room
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
