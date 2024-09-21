@@ -19,7 +19,7 @@ import { error } from "console";
                 name: "git-push",
                 setup(build) {
                     build.onEnd(async (result) => {
-                        if (error.length > 0) {
+                        if (result.errors.length > 0) {
                             return;
                         }
 
