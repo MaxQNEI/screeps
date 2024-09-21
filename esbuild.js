@@ -1,6 +1,7 @@
 import CHILD_PROCESS from "child_process";
 import * as ESBUILD from "esbuild";
 import FSP from "fs/promises";
+import OS from "os";
 
 let PushCounter;
 
@@ -29,10 +30,12 @@ async function UpdateNPush() {
 
         await FSP.writeFile("dist/main.js", body, { encoding: "utf-8" });
 
+        const msg = `<${OS.platform().toUpperCase()}/${
+            OS.userInfo().username
+        }> esbuild-git-push #${PushCounter + 1}`;
+
         CHILD_PROCESS.exec(
-            `git add .; git commit -m "esbuild-git-push #${(
-                PushCounter + 1
-            ).toString()}"; git push`,
+            `git add .; git commit -m "${msg}"; git push`,
             async (error, stdout, stderr) => {
                 if (error) {
                     console.error(`exec error: ${error}`);
