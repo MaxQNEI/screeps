@@ -108,6 +108,7 @@ export default function loop() {
                 }
 
                 const transfer = Game.getObjectById(creep.memory.transferId);
+                console.log(transfer.store.getFreeCapacity(RESOURCE_ENERGY));
 
                 if (!transfer) {
                     creep.say(":( #2");
