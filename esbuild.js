@@ -2,6 +2,8 @@ import CHILD_PROCESS from "child_process";
 import * as ESBUILD from "esbuild";
 import FSP from "fs/promises";
 import OS from "os";
+import TABLE from "./lib/table.js";
+import "./lib/date.prototype.fmt.js";
 
 let PushCounter;
 
@@ -64,18 +66,32 @@ const context = await ESBUILD.context({
     minify: false,
     sourcemap: false,
     outfile: "dist/main.js",
-    logLevel: "info",
+    // logLevel: "info",
 
     plugins: [
         {
             name: "git-push",
             setup(build) {
+                let now, spentBuild, spentPush;
+
+                build.onStart(() => {
+                    now = Date.now();
+                });
+
                 build.onEnd(async (result) => {
                     if (result.errors.length > 0) {
                         return;
                     }
 
+                    spentBuild = Date.now() - now;
+
+                    now = Date.now();
+
                     await UpdateNPush();
+
+                    spentPush = Date.now() - now;
+
+                    TABLE(["Start, Build, Push".split(", "), []]);
                 });
             },
         },
