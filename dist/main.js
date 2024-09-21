@@ -1,16 +1,32 @@
 (() => {
   // src/index.js
-  function creepSourcesByDistance(creep) {
+  function _distance(startPoint, endPoint) {
+    return Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2);
+  }
+  function SourcesByDistance(creep) {
     const sources = creep.room.find(FIND_SOURCES).map((source) => ({
       origin: source,
       distance: _distance(creep.pos, source.pos)
     })).sort(({ distance: a }, { distance: b }) => {
       return a === b ? 0 : a > b ? 1 : -1;
     }).map(({ origin }) => origin);
-    function _distance(startPoint, endPoint) {
-      return Math.pow(endPoint.x - startPoint.x, 2) + Math.pow(endPoint.y - startPoint.y, 2);
-    }
     return sources;
+  }
+  function FindSpawnWithFreeCapacity(creep) {
+    const spawns = creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
+      origin: spawn,
+      free: spawn.getFreeCapacity(RESOURCE_ENERGY) > 0
+    })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => a === b ? 0 : a > b ? 1 : -1).map(({ origin }) => origin);
+    return spawns;
+  }
+  function ConstructionSitesByDistance(creep) {
+    const constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
+      origin: constructionSite,
+      distance: _distance(creep.pos, constructionSite.pos)
+    })).sort(({ distance: a }, { distance: b }) => {
+      return a === b ? 0 : a > b ? 1 : -1;
+    }).map(({ origin }) => origin);
+    return constructionSites;
   }
   module.exports.loop = function loop() {
     {
@@ -37,7 +53,7 @@
           creep.memory.job = "transfer-energy";
         } else {
           if (!creep.memory.sourceId) {
-            const sources = creepSourcesByDistance(creep);
+            const sources = SourcesByDistance(creep);
             creep.memory.sourceId = sources[0].id;
           }
           if (!creep.memory.sourceId) {
@@ -64,23 +80,14 @@
         } else {
           if (!creep.memory.transferId) {
             {
-              const spawns = creep.room.find(FIND_MY_SPAWNS);
-              for (const spawn of spawns) {
-                if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                  console.log(
-                    spawn.id,
-                    spawn.store.getFreeCapacity(RESOURCE_ENERGY)
-                  );
-                  creep.memory.transferId = spawn.id;
-                  break;
-                }
-              }
+              const spawn = FindSpawnWithFreeCapacity(creep)[0];
+              spawn && (creep.memory.transferId = spawn.id);
             }
             {
-              const constructions = creep.room.find(
-                FIND_CONSTRUCTION_SITES
-              );
-              console.log(constructions);
+              const constructionSite = ConstructionSitesByDistance(
+                creep
+              )[0];
+              constructionSite && (creep.memory.transferId = constructionSite.id);
             }
           }
           if (!creep.memory.transferId) {

@@ -1,6 +1,14 @@
 import dump from "./lib/dump";
 
-function creepSourcesByDistance(creep) {
+function _distance(startPoint, endPoint) {
+    return (
+        Math.pow(endPoint.x - startPoint.x, 2) +
+        Math.pow(endPoint.y - startPoint.y, 2)
+    );
+}
+
+// Sources by distance
+function SourcesByDistance(creep) {
     const sources = creep.room
         .find(FIND_SOURCES)
         .map((source) => ({
@@ -12,14 +20,38 @@ function creepSourcesByDistance(creep) {
         })
         .map(({ origin }) => origin);
 
-    function _distance(startPoint, endPoint) {
-        return (
-            Math.pow(endPoint.x - startPoint.x, 2) +
-            Math.pow(endPoint.y - startPoint.y, 2)
-        );
-    }
-
     return sources;
+}
+
+// Find a spawn with free capacity
+function FindSpawnWithFreeCapacity(creep) {
+    const spawns = creep.room
+        .find(FIND_MY_SPAWNS)
+        .map((spawn) => ({
+            origin: spawn,
+            free: spawn.getFreeCapacity(RESOURCE_ENERGY) > 0,
+        }))
+        .filter(({ free }) => free > 0)
+        .sort(({ free: a }, { free: b }) => (a === b ? 0 : a > b ? 1 : -1))
+        .map(({ origin }) => origin);
+
+    return spawns;
+}
+
+// Construction sites by distance
+function ConstructionSitesByDistance(creep) {
+    const constructionSites = creep.room
+        .find(FIND_CONSTRUCTION_SITES)
+        .map((constructionSite) => ({
+            origin: constructionSite,
+            distance: _distance(creep.pos, constructionSite.pos),
+        }))
+        .sort(({ distance: a }, { distance: b }) => {
+            return a === b ? 0 : a > b ? 1 : -1;
+        })
+        .map(({ origin }) => origin);
+
+    return constructionSites;
 }
 
 export default function loop() {
@@ -52,7 +84,7 @@ export default function loop() {
                 creep.memory.job = "transfer-energy";
             } else {
                 if (!creep.memory.sourceId) {
-                    const sources = creepSourcesByDistance(creep);
+                    const sources = SourcesByDistance(creep);
                     creep.memory.sourceId = sources[0].id;
                 }
 
@@ -86,31 +118,20 @@ export default function loop() {
                 if (!creep.memory.transferId) {
                     // To spawn
                     {
-                        const spawns = creep.room.find(FIND_MY_SPAWNS);
-
-                        for (const spawn of spawns) {
-                            if (
-                                spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
-                            ) {
-                                console.log(
-                                    spawn.id,
-                                    spawn.store.getFreeCapacity(RESOURCE_ENERGY)
-                                );
-                                creep.memory.transferId = spawn.id;
-                                break;
-                            }
-                        }
+                        const spawn = FindSpawnWithFreeCapacity(creep)[0];
+                        spawn && (creep.memory.transferId = spawn.id);
                     }
 
                     // To storage
 
                     // To construction
                     {
-                        const constructions = creep.room.find(
-                            FIND_CONSTRUCTION_SITES
-                        );
+                        const constructionSite = ConstructionSitesByDistance(
+                            creep
+                        )[0];
 
-                        console.log(constructions)
+                        constructionSite &&
+                            (creep.memory.transferId = constructionSite.id);
                     }
 
                     // When nothing to transfer
