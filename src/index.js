@@ -73,7 +73,7 @@ function Unit(name = "Bunny", room, cases = []) {
     }
 }
 
-fetch("http://localhost/x")
+fetch("http://localhost:8484/?test=1")
     .then((response) => response.text())
     .catch(({ message }) => ({ error: message }))
     .then((result) => console.log("Fetch:", JSON.stringify(result)));
