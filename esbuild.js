@@ -42,8 +42,8 @@ async function UpdateNPush() {
                     return;
                 }
 
-                // console.log(`stdout: ${stdout}`);
-                // console.error(`stderr: ${stderr}`);
+                console.log(`stdout: ${stdout}`);
+                console.error(`stderr: ${stderr}`);
 
                 console.log(`Done: UpdateNPush: "${msg}"`);
 
