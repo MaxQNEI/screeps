@@ -56,7 +56,7 @@
       }
     }).then((response) => response.text()).catch(({ message }) => ({ error: message })).then((result) => console.log("Fetch:", JSON.stringify(result)));
   }
-  Msg(Game.rooms);
+  Msg(1);
   module.exports.loop = function loop() {
     for (const name in Game.rooms) {
       const room = Game.rooms[name];

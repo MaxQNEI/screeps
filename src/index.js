@@ -86,7 +86,7 @@ async function Msg(data) {
         .then((result) => console.log("Fetch:", JSON.stringify(result)));
 }
 
-Msg(Game.rooms);
+Msg(1);
 
 export default function loop() {
     // Every room

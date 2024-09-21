@@ -13,7 +13,7 @@ app.all("*", (req, res, next) => {
             "Access-Control-Allow-Methods": "*",
         });
 
-        next();
+        res.send();
     }
 });
 
