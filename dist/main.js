@@ -93,8 +93,8 @@
             result = creep.moveTo(transfer);
             result !== OK && creep.say(`M:${result}`);
           } else if (result === ERR_FULL) {
-            delete creep.memory.transferId;
             console.log("delete", creep.memory.transferId);
+            delete creep.memory.transferId;
           }
         }
       }
