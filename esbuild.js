@@ -45,7 +45,7 @@ async function UpdateNPush() {
                 // console.log(`stdout: ${stdout}`);
                 // console.error(`stderr: ${stderr}`);
 
-                console.log(`Done: UpdateNPush`);
+                console.log(`Done: UpdateNPush: "${msg}"`);
 
                 PushCounter += 1;
                 await SavePushCounter();
