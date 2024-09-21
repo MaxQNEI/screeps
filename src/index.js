@@ -119,7 +119,7 @@ export default function loop() {
 
                 result = creep.transfer(transfer, RESOURCE_ENERGY);
                 result !== OK &&
-                    ERR_NOT_IN_RANGE !== ERR_NOT_IN_RANGE &&
+                    result !== ERR_NOT_IN_RANGE &&
                     creep.say(`T:${result}`);
 
                 if (result === ERR_NOT_IN_RANGE) {
