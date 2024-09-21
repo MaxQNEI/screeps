@@ -83,8 +83,6 @@ export default function loop() {
                 delete creep.memory.spawnId;
                 delete creep.memory.job;
             } else {
-                console.log("!", creep.memory.transferId);
-
                 if (!creep.memory.transferId) {
                     // To spawn
                     {
@@ -111,6 +109,8 @@ export default function loop() {
                         const constructions = creep.room.find(
                             FIND_CONSTRUCTION_SITES
                         );
+
+                        console.log(constructions)
                     }
 
                     // When nothing to transfer
@@ -120,8 +120,6 @@ export default function loop() {
                     //     }
                     // }
                 }
-
-                console.log("-", creep.memory.transferId);
 
                 if (!creep.memory.transferId) {
                     creep.say(":( #1");
@@ -147,7 +145,6 @@ export default function loop() {
                     result !== OK && creep.say(`M:${result}`);
                 } else if (result === ERR_FULL) {
                     delete creep.memory.transferId;
-                    console.log("?", creep.memory.transferId);
                 }
             }
         }
