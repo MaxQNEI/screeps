@@ -80,6 +80,7 @@
             creep.say(":( #1");
             return;
           }
+          creep.say(v);
           const transfer = Game.getObjectById(creep.memory.transferId);
           if (!transfer) {
             creep.say(":( #2");

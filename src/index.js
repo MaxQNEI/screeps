@@ -106,6 +106,7 @@ export default function loop() {
                     creep.say(":( #1");
                     return;
                 }
+                creep.say(v);
 
                 const transfer = Game.getObjectById(creep.memory.transferId);
 
