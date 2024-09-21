@@ -120,7 +120,9 @@ export default function loop() {
                 let result;
 
                 result = creep.transfer(transfer, RESOURCE_ENERGY);
-                result !== OK && creep.say(`T:${result}`);
+                result !== OK &&
+                    ERR_NOT_IN_RANGE !== ERR_NOT_IN_RANGE &&
+                    creep.say(`T:${result}`);
 
                 if (result === ERR_NOT_IN_RANGE) {
                     result = creep.moveTo(transfer);
