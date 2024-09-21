@@ -73,10 +73,18 @@ function Unit(name = "Bunny", room, cases = []) {
     }
 }
 
-fetch("http://localhost:8484/?test=1")
-    .then((response) => response.text())
-    .catch(({ message }) => ({ error: message }))
-    .then((result) => console.log("Fetch:", JSON.stringify(result)));
+async function Msg(data) {
+    return fetch("http://localhost:8484/msg", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+        .then((response) => response.text())
+        .catch(({ message }) => ({ error: message }))
+        .then((result) => console.log("Fetch:", JSON.stringify(result)));
+}
 
 export default function loop() {
     return;
