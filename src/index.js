@@ -73,21 +73,6 @@ function Unit(name = "Bunny", room, cases = []) {
     }
 }
 
-async function Msg(data) {
-    return fetch("http://localhost:8484/msg", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-        .then((response) => response.text())
-        .catch(({ message }) => ({ error: message }))
-        .then((result) => console.log("Fetch:", JSON.stringify(result)));
-}
-
-Msg(1);
-
 export default function loop() {
     // Every room
     for (const name in Game.rooms) {
