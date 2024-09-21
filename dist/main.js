@@ -26,7 +26,7 @@
   function Harvester1(name) {
     if (!Game.creeps[name]) {
       const spawn = Object.values(Game.spawns)[0];
-      spawn.spawnCreep([WORK, CARRY, MOVE], "Harvester1", { memory: {} });
+      spawn.spawnCreep([WORK, CARRY, MOVE], name, { memory: {} });
     }
     const creep = Game.creeps[name];
     if (!creep) {
