@@ -12,6 +12,18 @@ export default function Harvester1(name) {
         return;
     }
 
+    // Road everywhere
+    // createConstructionSite(x, y, structureType, [name])
+    // (pos, structureType, [name])
+    // STRUCTURE_ROAD
+    {
+        const result = creep.room.createConstructionSite(
+            creep.pos,
+            STRUCTURE_ROAD
+        );
+        console.log("createConstructionSite", result);
+    }
+
     if (!creep.memory.job) {
         if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
             creep.memory.job = "harvest-energy";

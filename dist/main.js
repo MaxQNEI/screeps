@@ -32,6 +32,13 @@
     if (!creep) {
       return;
     }
+    {
+      const result = creep.room.createConstructionSite(
+        creep.pos,
+        STRUCTURE_ROAD
+      );
+      console.log("createConstructionSite", result);
+    }
     if (!creep.memory.job) {
       if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
         creep.memory.job = "harvest-energy";
