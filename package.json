@@ -15,7 +15,7 @@
         "url": "https://github.com/MaxQNEI/screeps/issues"
     },
     "scripts": {
-        "build": "nodenob esbuild.js -w esbuild.js"
+        "build": "nodemon esbuild.js -w esbuild.js"
     },
     "dependencies": {
         "esbuild": "^0.23.1"
