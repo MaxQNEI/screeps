@@ -62,8 +62,7 @@
     }
     spawn() {
       const cost = this.options.body.reduce(
-        (pv, cv) => pv + BODYPART_COST[cv],
-        0
+        (pv, cv) => (pv ?? 0) + BODYPART_COST[cv]
       );
       let spawnsInRoom = [];
       let spawnMaxEnergy = 0;
