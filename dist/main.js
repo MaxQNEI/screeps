@@ -91,6 +91,7 @@
       super();
       this.creep = Game.creeps[options.name];
       this.options = options;
+      console.log(">", this.options.name);
     }
     live() {
       for (const mtd of ["spawn"]) {
