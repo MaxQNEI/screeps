@@ -91,7 +91,7 @@
     }
     live() {
       for (const mtd of ["spawn"]) {
-        console.log(`this[${mtd}]`, this.creep);
+        console.log(`this[${mtd}]()`);
         if (!this[mtd]()) {
           return false;
         }
