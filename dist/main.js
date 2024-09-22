@@ -1,4 +1,9 @@
 (() => {
+  // lib/sort.js
+  function asc2(a, b) {
+    return a === b ? 0 : a > b ? 1 : -1;
+  }
+
   // src/lib/creep/CreepProps.js
   var CreepProps = class {
     options = {
@@ -9,8 +14,22 @@
     creep = Creep;
   };
 
+  // src/lib/creep/CreepDistance.js
+  var FIND_SPAWN_WITH_FREE_CAPACITY = "FIND_SPAWN_WITH_FREE_CAPACITY";
+  var CreepDistance = class extends CreepProps {
+    findSpawn(findType = FIND_SPAWN_WITH_FREE_CAPACITY) {
+      if (findType === FIND_SPAWN_WITH_FREE_CAPACITY) {
+        const spawns = this.creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
+          origin: spawn,
+          free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+        })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => asc2(a, b)).map(({ origin }) => origin);
+        return spawns;
+      }
+    }
+  };
+
   // src/lib/creep/Creep.js
-  var Creep2 = class extends CreepProps {
+  var Creep2 = class extends CreepDistance {
     constructor(options = this.options) {
       super();
       this.creep = Game.creeps[options.name];
