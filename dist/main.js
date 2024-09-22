@@ -66,6 +66,7 @@
   // src/lib/creep/CreepSpawn.js
   var CreepSpawn = class extends CreepFind {
     spawn() {
+      console.log("this.creep", this.creep);
       this.creep = Game.creeps[this.options.name];
       if (this.creep) {
         return;
