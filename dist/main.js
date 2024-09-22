@@ -101,6 +101,7 @@
   };
 
   // src/index.js
+  console.log("".padStart(40, "="));
   module.exports.loop = function loop() {
     for (const nameRoom in Game.rooms) {
       new Creep2({
