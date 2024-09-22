@@ -69,6 +69,7 @@
     spawn() {
       this.creep = Game.creeps[this.options.name];
       if (this.creep) {
+        console.log(1);
         return true;
       }
       const cost = this.options.body.reduce(
@@ -76,10 +77,12 @@
       );
       const spawn = this.find(FIND_SPAWN_TO_SPAWN_CREEP_BY_COST, { cost });
       if (!spawn) {
+        console.log(2);
         return false;
       }
       spawn.spawnCreep(this.options.body.sort(asc), this.options.name);
       this.creep = Game.creeps[this.options.name];
+      console.log(3);
       return true;
     }
   };
