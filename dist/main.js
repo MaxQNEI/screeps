@@ -7,7 +7,7 @@
       let spawnMaxEnergy = 0;
       for (const name2 in Game.spawns) {
         const spawn2 = Game.spawns[name2];
-        if (spawn2.room === room) {
+        if (spawn2.room === opts.room) {
           const structure = spawn2;
           const energyUsed = spawn2.store.getUsedCapacity(RESOURCE_ENERGY);
           const energyCapacity = spawn2.store.getCapacity(RESOURCE_ENERGY);
@@ -31,9 +31,9 @@
   }
   module.exports.loop = function loop() {
     for (const name in Game.rooms) {
-      const room2 = Game.rooms[name];
+      const room = Game.rooms[name];
       Unit("Universal", {
-        room: room2,
+        room,
         body: [WORK, CARRY, MOVE]
       });
     }
