@@ -17,7 +17,7 @@
   // src/lib/creep/CreepFind.js
   var FIND_SPAWN_WITH_FREE_CAPACITY = "FIND_SPAWN_WITH_FREE_CAPACITY";
   var CreepFind = class extends CreepProps {
-    findSpawn(findType = FIND_SPAWN_WITH_FREE_CAPACITY) {
+    find(findType = FIND_SPAWN_WITH_FREE_CAPACITY) {
       if (findType === FIND_SPAWN_WITH_FREE_CAPACITY) {
         const spawns = this.creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
           origin: spawn,
