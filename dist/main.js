@@ -1,4 +1,9 @@
 (() => {
+  // lib/sort.js
+  function asc(a, b) {
+    return a === b ? 0 : a > b ? 1 : -1;
+  }
+
   // src/index.js
   function Unit(unit = { name: "Bunny", room: Room, body: [] }) {
     console.log(`Unit: ${unit.name}`);
@@ -19,12 +24,10 @@
         }
       }
       const spawn = spawnsInRoom?.[0]?.structure;
-      console.log(cost, spawn, spawnsInRoom?.[0].energyUsed);
-      return;
       if (!spawn) {
         return;
       }
-      spawn.spawnCreep();
+      console.log(unit.body.sort(asc));
       return;
     }
     if (Game.creeps[unit.name].spawning) {
