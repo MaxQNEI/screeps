@@ -1,5 +1,6 @@
 (() => {
   // src/index.js
+  console.log("v0.0.0.1");
   var CASES = {
     HARVEST_TO_SPAWN: {
       body: {
@@ -50,7 +51,7 @@
       return;
     }
   }
-  module.exports.loop = function loop() {
+  function loop() {
     return;
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
