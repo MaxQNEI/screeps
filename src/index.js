@@ -1,3 +1,5 @@
+console.log("v{{VERSION}}");
+
 const CASES = {
     HARVEST_TO_SPAWN: {
         body: {
@@ -57,8 +59,7 @@ function Unit(name = "Bunny", room, cases = []) {
 
         // Cost
         const body = [];
-        for(const _case of cases) {
-
+        for (const _case of cases) {
         }
 
         // Spawn not exists

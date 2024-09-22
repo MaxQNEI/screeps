@@ -11,7 +11,7 @@ const context = await ESBUILD.context({
     outfile: "dist/main.js",
     // logLevel: "info",
 
-    plugins: [await UpdateNPush(import.meta.dirname)],
+    plugins: [await UpdateNPush(import.meta.dirname, { version: "0.0.0.$" })],
 });
 
 await context.watch();
