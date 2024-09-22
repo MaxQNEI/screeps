@@ -74,7 +74,8 @@
         return true;
       }
       const cost = this.options.body.reduce(
-        (pv, cv) => (pv ?? 0) + BODYPART_COST[cv]
+        (pv, cv) => pv + BODYPART_COST[cv],
+        0
       );
       const spawn = this.find(FIND_SPAWN_TO_SPAWN_CREEP_BY_COST, { cost });
       if (!spawn) {
