@@ -1,7 +1,7 @@
 (() => {
   // src/index.js
   function Unit(unit = { name: "Bunny", room: Room, body: [] }) {
-    console.log(`Unit("${name}")`);
+    console.log(`Unit: ${unit.name}`);
     if (!Game.creeps[name]) {
       let spawnsInRoom = [];
       let spawnMaxEnergy = 0;
