@@ -69,7 +69,7 @@
     spawn() {
       this.creep = Game.creeps[this.options.name];
       if (this.creep) {
-        return;
+        return true;
       }
       const cost = this.options.body.reduce(
         (pv, cv) => (pv ?? 0) + BODYPART_COST[cv]
