@@ -1,8 +1,16 @@
 (() => {
+  // src/lib/creep/Creep.props.js
+  var CreepProps = class {
+    options = {
+      name: "Bunny",
+      room: Room,
+      body: []
+    };
+    creep = Creep;
+  };
+
   // src/lib/creep/Creep.js
-  var Creep = class {
-    options = { name: "Bunny", room: Room, body: [] };
-    creep;
+  var Creep2 = class extends CreepProps {
     constructor(options = this.options) {
       this.creep = Game.creeps[options.name];
     }
@@ -35,7 +43,7 @@
   // src/index.js
   module.exports.loop = function loop() {
     for (const nameRoom in Game.rooms) {
-      new Creep({
+      new Creep2({
         name: "Universal",
         room: Game.rooms[nameRoom],
         body: [WORK, CARRY, MOVE]
