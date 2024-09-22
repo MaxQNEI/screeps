@@ -14,7 +14,7 @@
     creep = Creep;
   };
 
-  // src/lib/creep/CreepDistance.js
+  // src/lib/creep/CreepFind.js
   var FIND_SPAWN_WITH_FREE_CAPACITY = "FIND_SPAWN_WITH_FREE_CAPACITY";
   var CreepFind = class extends CreepProps {
     findSpawn(findType = FIND_SPAWN_WITH_FREE_CAPACITY) {
