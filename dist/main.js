@@ -27,7 +27,7 @@
   var CreepFind = class extends CreepProps {
     find(findType = FIND_SPAWN_WITH_FREE_CAPACITY, options = { cost: 0 }) {
       if (findType === FIND_SPAWN_WITH_FREE_CAPACITY) {
-        const spawns = this.creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
+        const spawns = (this.creep?.room ?? this.options.room).find(FIND_MY_SPAWNS).map((spawn) => ({
           origin: spawn,
           free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
         })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => asc2(a, b)).map(({ origin }) => origin);
