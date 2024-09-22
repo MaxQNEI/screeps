@@ -93,8 +93,8 @@
     }
     live() {
       for (const mtd of ["spawn"]) {
-        console.log(`[${this.options.name}] ${mtd}()`);
         if (!this[mtd]()) {
+          console.log(`[${this.options.name}] ${mtd}()`);
           return false;
         }
       }
