@@ -26,15 +26,16 @@
   var FIND_SPAWN_TO_SPAWN_CREEP_BY_COST = "FIND_SPAWN_TO_SPAWN_CREEP_BY_COST";
   var CreepFind = class extends CreepProps {
     find(findType = FIND_SPAWN_WITH_FREE_CAPACITY, options = { cost: 0 }) {
+      const _room = this.creep?.room ?? this.options.room;
       if (findType === FIND_SPAWN_WITH_FREE_CAPACITY) {
-        const spawns = (this.creep?.room ?? this.options.room).find(FIND_MY_SPAWNS).map((spawn) => ({
+        const spawns = _room.find(FIND_MY_SPAWNS).map((spawn) => ({
           origin: spawn,
           free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
         })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => asc2(a, b)).map(({ origin }) => origin);
         return spawns;
       }
       if (findType === FIND_SOURCES_BY_DISTANCE) {
-        const sources = this.creep.room.find(FIND_SOURCES).map((source) => ({
+        const sources = _room.find(FIND_SOURCES).map((source) => ({
           origin: source,
           distance: distance(this.creep.pos, source.pos)
         })).sort(
@@ -43,7 +44,7 @@
         return sources;
       }
       if (findType === FIND_CONSTRUCTION_SITES_BY_DISTANCE) {
-        const constructionSites = this.creep.room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
+        const constructionSites = _room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
           origin: constructionSite,
           distance: distance(this.creep.pos, constructionSite.pos)
         })).sort(
@@ -54,7 +55,7 @@
       if (findType === FIND_SPAWN_TO_SPAWN_CREEP_BY_COST) {
         for (const nameSpawn in Game.spawns) {
           const spawn = Game.spawns[nameSpawn];
-          if (spawn.room === this.creep.room && spawn.store[RESOURCE_ENERGY] >= options.cost) {
+          if (spawn.room === _room && spawn.store[RESOURCE_ENERGY] >= options.cost) {
             return spawn;
           }
         }
