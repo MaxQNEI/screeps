@@ -1,7 +1,15 @@
 (() => {
   // src/lib/creep/Creep.fn.js
-  function Creep(creep) {
-    return {};
+  function Creep(options = { name: "Bunny", room: Room, body: [] }) {
+    if (!Game.creeps[unit.name]) {
+      return spawn();
+    }
+    return {
+      work: () => {
+      }
+    };
+    function spawn() {
+    }
   }
 
   // src/index.js
