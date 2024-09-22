@@ -18,7 +18,8 @@
           spawnsInRoom.push({ structure, energyUsed, energyCapacity });
         }
       }
-      console.log(cost, spawnsInRoom[0]);
+      const spawn = spawnsInRoom?.[0]?.structure;
+      console.log(cost, spawn);
       return;
       if (!spawn) {
         return;
