@@ -19,7 +19,7 @@
         }
       }
       const spawn = spawnsInRoom?.[0]?.structure;
-      console.log(cost, spawn);
+      console.log(cost, spawn, spawnsInRoom?.[0].energyUsed);
       return;
       if (!spawn) {
         return;
