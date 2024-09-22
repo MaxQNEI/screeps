@@ -1,1 +1,42 @@
-(()=>{function l(n="Bunny",e={body:[]}){if(console.log(`Unit("${n}")`),!Game.creeps[n]){let a=[],t=0;for(let s in Game.spawns){let o=Game.spawns[s];if(o.room===room){let p=o,i=o.store.getUsedCapacity(RESOURCE_ENERGY),r=o.store.getCapacity(RESOURCE_ENERGY);t=Math.max(t,r),a.push({structure:p,energyUsed:i,energyCapacity:r})}}console.log("Cost...");let c=e.body.reduce((s,o)=>s+BODYPART_COST[o],0);console.log("Cost",c);return}Game.creeps[n].spawning}function m(){console.log("tick",Date.now());for(let n in Game.rooms){let e=Game.rooms[n];l("Universal",{room:e,body:[WORK,CARRY,MOVE]})}}})();
+(() => {
+  // src/index.js
+  function Unit(name = "Bunny", opts = { body: [] }) {
+    console.log(`Unit("${name}")`);
+    if (!Game.creeps[name]) {
+      let spawnsInRoom = [];
+      let spawnMaxEnergy = 0;
+      for (const name2 in Game.spawns) {
+        const spawn2 = Game.spawns[name2];
+        if (spawn2.room === room) {
+          const structure = spawn2;
+          const energyUsed = spawn2.store.getUsedCapacity(RESOURCE_ENERGY);
+          const energyCapacity = spawn2.store.getCapacity(RESOURCE_ENERGY);
+          spawnMaxEnergy = Math.max(spawnMaxEnergy, energyCapacity);
+          spawnsInRoom.push({ structure, energyUsed, energyCapacity });
+        }
+      }
+      console.log("Cost...");
+      const cost = opts.body.reduce((pv, cv) => pv + BODYPART_COST[cv], 0);
+      console.log("Cost", cost);
+      return;
+      if (!spawn) {
+        return;
+      }
+      spawn.spawnCreep();
+      return;
+    }
+    if (Game.creeps[name].spawning) {
+      return;
+    }
+  }
+  module.exports.loop = function loop() {
+    console.log("tick", Date.now());
+    for (const name in Game.rooms) {
+      const room2 = Game.rooms[name];
+      Unit("Universal", {
+        room: room2,
+        body: [WORK, CARRY, MOVE]
+      });
+    }
+  }
+})();
