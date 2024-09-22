@@ -1,5 +1,5 @@
 (() => {
-  // src/lib/creep/CreepOrops.js
+  // src/lib/creep/CreepProps.js
   var CreepProps = class {
     options = {
       name: "Bunny",
