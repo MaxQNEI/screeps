@@ -70,7 +70,12 @@
       this.creep = Game.creeps[options.name];
       this.options = options;
     }
+    do() {
+    }
     spawn() {
+      if (Game.creeps[this.options.name]) {
+        return;
+      }
       const cost = this.options.body.reduce(
         (pv, cv) => (pv ?? 0) + BODYPART_COST[cv]
       );
