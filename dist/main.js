@@ -30,7 +30,6 @@
     }
   }
   module.exports.loop = function loop() {
-    console.log("tick", Date.now());
     for (const name in Game.rooms) {
       const room2 = Game.rooms[name];
       Unit("Universal", {
