@@ -1,6 +1,6 @@
 (() => {
   // src/index.js
-  function Unit(name = "Bunny", opts = { body: [] }) {
+  function Unit(name = "Bunny", opts = { room: Room, body: [] }) {
     console.log(`Unit("${name}")`);
     if (!Game.creeps[name]) {
       let spawnsInRoom = [];
