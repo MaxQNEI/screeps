@@ -55,7 +55,7 @@
       if (findType === FIND_SPAWN_TO_SPAWN_CREEP_BY_COST) {
         for (const nameSpawn in Game.spawns) {
           const spawn = Game.spawns[nameSpawn];
-          console.log(spawn.store[RESOURCE_ENERGY], Foptions.cost);
+          console.log(spawn.store[RESOURCE_ENERGY], options.cost);
           if (spawn.room === _room && spawn.store[RESOURCE_ENERGY] >= options.cost) {
             return spawn;
           }
