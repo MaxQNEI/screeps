@@ -5,8 +5,8 @@
     if (!Game.creeps[unit.name]) {
       let spawnsInRoom = [];
       let spawnMaxEnergy = 0;
-      for (const name in Game.spawns) {
-        const spawn2 = Game.spawns[name];
+      for (const nameSpawn in Game.spawns) {
+        const spawn2 = Game.spawns[nameSpawn];
         if (spawn2.room === unit.room) {
           const structure = spawn2;
           const energyUsed = spawn2.store.getUsedCapacity(RESOURCE_ENERGY);
@@ -30,10 +30,10 @@
     }
   }
   module.exports.loop = function loop() {
-    for (const name in Game.rooms) {
+    for (const nameRoom in Game.rooms) {
       Unit({
         name: "Universal",
-        room: Game.rooms[name],
+        room: Game.rooms[nameRoom],
         body: [WORK, CARRY, MOVE]
       });
     }
