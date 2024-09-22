@@ -16,7 +16,7 @@
 
   // src/lib/creep/CreepDistance.js
   var FIND_SPAWN_WITH_FREE_CAPACITY = "FIND_SPAWN_WITH_FREE_CAPACITY";
-  var CreepDistance = class extends CreepProps {
+  var CreepFind = class extends CreepProps {
     findSpawn(findType = FIND_SPAWN_WITH_FREE_CAPACITY) {
       if (findType === FIND_SPAWN_WITH_FREE_CAPACITY) {
         const spawns = this.creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
@@ -29,7 +29,7 @@
   };
 
   // src/lib/creep/Creep.js
-  var Creep2 = class extends CreepDistance {
+  var Creep2 = class extends CreepFind {
     constructor(options = this.options) {
       super();
       this.creep = Game.creeps[options.name];
