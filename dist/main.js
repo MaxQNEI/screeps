@@ -63,17 +63,11 @@
     }
   };
 
-  // src/lib/creep/Creep.js
-  var Creep2 = class extends CreepFind {
-    constructor(options = this.options) {
-      super();
-      this.creep = Game.creeps[options.name];
-      this.options = options;
-    }
-    do() {
-    }
+  // src/lib/creep/CreepSpawn.js
+  var CreepSpawn = class extends CreepFind {
     spawn() {
-      if (Game.creeps[this.options.name]) {
+      this.creep = Game.creeps[this.options.name];
+      if (this.creep) {
         return;
       }
       const cost = this.options.body.reduce(
@@ -85,6 +79,22 @@
       }
       spawn.spawnCreep(this.options.body.sort(asc), this.options.name);
       return true;
+    }
+  };
+
+  // src/lib/creep/Creep.js
+  var Creep2 = class extends CreepSpawn {
+    constructor(options = this.options) {
+      super();
+      this.creep = Game.creeps[options.name];
+      this.options = options;
+    }
+    live() {
+      for (const mtd of [this.spawn]) {
+        if (!mtd()) {
+          return false;
+        }
+      }
     }
   };
 
