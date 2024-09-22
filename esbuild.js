@@ -1,7 +1,7 @@
 import * as ESBUILD from "esbuild";
 import "./lib/date.prototype.diff.js";
 import "./lib/date.prototype.format.js";
-import UpdateNPush from "./lib/esbuild.plugin.update-and-push.js";
+import PUSH from "./lib/esbuild.plugin.push.js";
 
 const context = await ESBUILD.context({
     entryPoints: ["src/index.js"],
@@ -9,9 +9,9 @@ const context = await ESBUILD.context({
     minify: false,
     sourcemap: false,
     outfile: "dist/main.js",
-    // logLevel: "info",
+    logLevel: "info",
 
-    plugins: [await UpdateNPush(import.meta.dirname, { version: "0.0.0.$" })],
+    plugins: [await PUSH(import.meta.dirname)],
 });
 
 await context.watch();

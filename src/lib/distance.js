@@ -1,6 +1,3 @@
-export default function distance(startPoint, endPoint) {
-    return (
-        Math.pow(endPoint.x - startPoint.x, 2) +
-        Math.pow(endPoint.y - startPoint.y, 2)
-    );
+export default function distance(point1, point2) {
+    return Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2);
 }
