@@ -4,7 +4,7 @@
     return a === b ? 0 : a > b ? 1 : -1;
   }
 
-  // src/index.js
+  // src/lib/unit.js
   function Unit(unit = { name: "Bunny", room: Room, body: [] }) {
     console.log(`Unit: ${unit.name}`);
     if (!Game.creeps[unit.name]) {
@@ -34,6 +34,8 @@
       return;
     }
   }
+
+  // src/index.js
   module.exports.loop = function loop() {
     for (const nameRoom in Game.rooms) {
       Unit({
