@@ -105,7 +105,7 @@
         name: "Universal",
         room: Game.rooms[nameRoom],
         body: [WORK, CARRY, MOVE]
-      }).do();
+      }).live();
     }
   }
 })();
