@@ -20,11 +20,12 @@
   };
 
   // src/lib/creep/CreepFind.js
-  var FIND_SPAWN_WITH_FREE_CAPACITY = 0;
-  var FIND_SOURCES_BY_DISTANCE = 1;
-  var FIND_CONSTRUCTION_SITES_BY_DISTANCE = 2;
+  var FIND_CONSTRUCTION_SITES_BY_DISTANCE = "FIND_CONSTRUCTION_SITES_BY_DISTANCE";
+  var FIND_SOURCES_BY_DISTANCE = "FIND_SOURCES_BY_DISTANCE";
+  var FIND_SPAWN_WITH_FREE_CAPACITY = "FIND_SPAWN_WITH_FREE_CAPACITY";
+  var FIND_SPAWN_TO_SPAWN_CREEP_BY_COST = "FIND_SPAWN_TO_SPAWN_CREEP_BY_COST";
   var CreepFind = class extends CreepProps {
-    find(findType = FIND_SPAWN_WITH_FREE_CAPACITY) {
+    find(findType = FIND_SPAWN_WITH_FREE_CAPACITY, options = { cost: 0 }) {
       if (findType === FIND_SPAWN_WITH_FREE_CAPACITY) {
         const spawns = this.creep.room.find(FIND_MY_SPAWNS).map((spawn) => ({
           origin: spawn,
@@ -49,6 +50,15 @@
           ({ distance: a }, { distance: b }) => a === b ? 0 : a > b ? 1 : -1
         ).map(({ origin }) => origin);
         return constructionSites;
+      }
+      if (findType === FIND_SPAWN_TO_SPAWN_CREEP_BY_COST) {
+        for (const nameSpawn in Game.spawns) {
+          const spawn = Game.spawns[nameSpawn];
+          if (spawn.room === this.creep.room && spawn.store[RESOURCE_ENERGY] >= options.cost) {
+            return spawn;
+          }
+        }
+        return false;
       }
     }
   };
