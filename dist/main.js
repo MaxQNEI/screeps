@@ -90,8 +90,8 @@
       this.options = options;
     }
     live() {
-      for (const mtd of [this.spawn]) {
-        if (!mtd()) {
+      for (const mtd of ["spawn"]) {
+        if (!this[mtd]()) {
           return false;
         }
       }
