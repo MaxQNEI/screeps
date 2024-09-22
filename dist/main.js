@@ -14,6 +14,7 @@
     constructor(options = this.options) {
       super();
       this.creep = Game.creeps[options.name];
+      this.options = options;
     }
     spawn() {
       const cost = this.options.body.reduce(
