@@ -1,6 +1,6 @@
 (() => {
   // lib/sort.js
-  function asc2(a, b) {
+  function asc(a, b) {
     return a === b ? 0 : a > b ? 1 : -1;
   }
 
@@ -31,7 +31,7 @@
         const spawns = _room.find(FIND_MY_SPAWNS).map((spawn) => ({
           origin: spawn,
           free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0
-        })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => asc2(a, b)).map(({ origin }) => origin);
+        })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => asc(a, b)).map(({ origin }) => origin);
         return spawns;
       }
       if (findType === FIND_SOURCES_BY_DISTANCE) {
@@ -55,7 +55,6 @@
       if (findType === FIND_SPAWN_TO_SPAWN_CREEP_BY_COST) {
         for (const nameSpawn in Game.spawns) {
           const spawn = Game.spawns[nameSpawn];
-          console.log(spawn.store[RESOURCE_ENERGY], options.cost);
           if (spawn.room === _room && spawn.store[RESOURCE_ENERGY] >= options.cost) {
             return spawn;
           }
@@ -70,7 +69,6 @@
     spawn() {
       this.creep = Game.creeps[this.options.name];
       if (this.creep) {
-        console.log(1);
         return true;
       }
       const cost = this.options.body.reduce(
@@ -79,12 +77,10 @@
       );
       const spawn = this.find(FIND_SPAWN_TO_SPAWN_CREEP_BY_COST, { cost });
       if (!spawn) {
-        console.log(2);
         return false;
       }
       spawn.spawnCreep(this.options.body.sort(asc), this.options.name);
       this.creep = Game.creeps[this.options.name];
-      console.log(3);
       return true;
     }
   };
