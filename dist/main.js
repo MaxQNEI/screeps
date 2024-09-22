@@ -74,19 +74,7 @@
       const cost = this.options.body.reduce(
         (pv, cv) => (pv ?? 0) + BODYPART_COST[cv]
       );
-      let spawnsInRoom = [];
-      let spawnMaxEnergy = 0;
-      for (const nameSpawn in Game.spawns) {
-        const spawn2 = Game.spawns[nameSpawn];
-        const structure = spawn2;
-        const energyUsed = spawn2.store.getUsedCapacity(RESOURCE_ENERGY);
-        const energyCapacity = spawn2.store.getCapacity(RESOURCE_ENERGY);
-        if (spawn2.room === this.options.room && energyUsed >= cost) {
-          spawnMaxEnergy = Math.max(spawnMaxEnergy, energyCapacity);
-          spawnsInRoom.push({ structure, energyUsed, energyCapacity });
-        }
-      }
-      const spawn = spawnsInRoom?.[0]?.structure;
+      const spawn = this.find(FIND_SPAWN_TO_SPAWN_CREEP_BY_COST, { cost });
       if (!spawn) {
         return false;
       }
