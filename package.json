@@ -18,6 +18,7 @@
         "build": "nodemon esbuild.js -w esbuild.js"
     },
     "dependencies": {
-        "esbuild": "^0.23.1"
+        "esbuild": "^0.23.1",
+        "nodemon": "^3.1.7"
     }
 }
