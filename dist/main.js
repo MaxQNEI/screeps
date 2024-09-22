@@ -12,6 +12,7 @@
   // src/lib/creep/Creep.js
   var Creep2 = class extends CreepProps {
     constructor(options = this.options) {
+      super();
       this.creep = Game.creeps[options.name];
     }
     spawn() {
