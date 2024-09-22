@@ -4,8 +4,8 @@
     return a === b ? 0 : a > b ? 1 : -1;
   }
 
-  // src/lib/unit.js
-  function Unit(unit = { name: "Bunny", room: Room, body: [] }) {
+  // src/lib/SpawnCreep.js
+  function SpawnCreep(unit = { name: "Bunny", room: Room, body: [] }) {
     console.log(`Unit: ${unit.name}`);
     if (!Game.creeps[unit.name]) {
       console.log("Cost...");
@@ -27,7 +27,7 @@
       if (!spawn) {
         return;
       }
-      console.log(unit.body.sort(asc));
+      spawn.spawnCreep(unit.body.sort(asc), unit.name);
       return;
     }
     if (Game.creeps[unit.name].spawning) {
@@ -38,7 +38,7 @@
   // src/index.js
   module.exports.loop = function loop() {
     for (const nameRoom in Game.rooms) {
-      Unit({
+      SpawnCreep({
         name: "Universal",
         room: Game.rooms[nameRoom],
         body: [WORK, CARRY, MOVE]
