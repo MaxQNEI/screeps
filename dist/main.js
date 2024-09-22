@@ -90,8 +90,8 @@
       this.options = options;
     }
     live() {
-      console.log("this.creep", this.creep);
       for (const mtd of ["spawn"]) {
+        console.log(`this[${mtd}]`, this.creep);
         if (!this[mtd]()) {
           return false;
         }
