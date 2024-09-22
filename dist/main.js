@@ -37,6 +37,9 @@
           spawnsInRoom.push({ structure, energyUsed, energyCapacity });
         }
       }
+      const body = [];
+      for (const _case of cases) {
+      }
       if (!spawn) {
         return;
       }

@@ -38,7 +38,7 @@ function Unit(name = "Bunny", room, cases = []) {
 
     // Spawn if not exists
     if (!Game.creeps[name]) {
-        // Find spawn
+        // Find spawns
         let spawnsInRoom = [];
         let spawnMaxEnergy = 0;
         for (const name in Game.spawns) {
@@ -53,6 +53,12 @@ function Unit(name = "Bunny", room, cases = []) {
 
                 spawnsInRoom.push({ structure, energyUsed, energyCapacity });
             }
+        }
+
+        // Cost
+        const body = [];
+        for(const _case of cases) {
+
         }
 
         // Spawn not exists
