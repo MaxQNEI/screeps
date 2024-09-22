@@ -6,7 +6,7 @@
 
   // src/lib/SpawnCreep.js
   function SpawnCreep(unit = { name: "Bunny", room: Room, body: [] }) {
-    console.log(`Unit: ${unit.name}`);
+    console.log(`SpawnCreep: ${unit.name}`);
     if (!Game.creeps[unit.name]) {
       console.log("Cost...");
       const cost = unit.body.reduce((pv, cv) => pv + BODYPART_COST[cv], 0);
