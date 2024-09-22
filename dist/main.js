@@ -1,6 +1,6 @@
 (() => {
   // src/index.js
-  console.log("v0.0.0.3");
+  console.log("v0.0.0.4");
   var CASES = {
     HARVEST_TO_SPAWN: {
       body: {
