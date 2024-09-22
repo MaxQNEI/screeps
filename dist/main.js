@@ -78,6 +78,7 @@
         return false;
       }
       spawn.spawnCreep(this.options.body.sort(asc), this.options.name);
+      this.creep = Game.creeps[this.options.name];
       return true;
     }
   };
