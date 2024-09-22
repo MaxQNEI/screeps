@@ -2,11 +2,11 @@
   // src/index.js
   function Unit(unit = { name: "Bunny", room: Room, body: [] }) {
     console.log(`Unit: ${unit.name}`);
-    if (!Game.creeps[name]) {
+    if (!Game.creeps[unit.name]) {
       let spawnsInRoom = [];
       let spawnMaxEnergy = 0;
-      for (const name2 in Game.spawns) {
-        const spawn2 = Game.spawns[name2];
+      for (const name in Game.spawns) {
+        const spawn2 = Game.spawns[name];
         if (spawn2.room === unit.room) {
           const structure = spawn2;
           const energyUsed = spawn2.store.getUsedCapacity(RESOURCE_ENERGY);
@@ -25,15 +25,15 @@
       spawn.spawnCreep();
       return;
     }
-    if (Game.creeps[name].spawning) {
+    if (Game.creeps[unit.name].spawning) {
       return;
     }
   }
   module.exports.loop = function loop() {
-    for (const name2 in Game.rooms) {
+    for (const name in Game.rooms) {
       Unit({
         name: "Universal",
-        room: Game.rooms[name2],
+        room: Game.rooms[name],
         body: [WORK, CARRY, MOVE]
       });
     }
