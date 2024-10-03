@@ -1,24 +1,24 @@
 {
-    "name": "screeps",
-    "version": "1.0.0",
-    "type": "module",
-    "main": "main.js",
-    "author": "MaxQNEI <maxqnei@gmail.com>",
-    "license": "ISC",
-    "homepage": "https://github.com/MaxQNEI/screeps#readme",
-    "description": "",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/MaxQNEI/screeps.git"
-    },
-    "bugs": {
-        "url": "https://github.com/MaxQNEI/screeps/issues"
-    },
-    "scripts": {
-        "build": "nodemon esbuild.js -w esbuild.js -w lib/esbuild*"
-    },
-    "dependencies": {
-        "esbuild": "^0.23.1",
-        "nodemon": "^3.1.7"
-    }
+  "name": "screeps",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "main.js",
+  "author": "MaxQNEI <maxqnei@gmail.com>",
+  "license": "ISC",
+  "homepage": "https://github.com/MaxQNEI/screeps#readme",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxQNEI/screeps.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MaxQNEI/screeps/issues"
+  },
+  "scripts": {
+    "build": "nodemon esbuild.js -w esbuild.js -w lib/esbuild*"
+  },
+  "dependencies": {
+    "esbuild": "^0.23.1",
+    "nodemon": "^3.1.7"
+  }
 }

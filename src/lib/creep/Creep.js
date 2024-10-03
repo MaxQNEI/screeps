@@ -1,19 +1,19 @@
-import CreepSpawn from "./CreepSpawn";
+import CreepJob from "./CreepJob";
 
-export default class Creep extends CreepSpawn {
-    constructor(options = this.options) {
-        super();
+export default class Creep extends CreepJob {
+  constructor(options = this.options) {
+    super();
 
-        this.creep = Game.creeps[options.name];
-        this.options = options;
+    this.setOptions(options);
+  }
+
+  live() {
+    if (!this.spawn()) {
+      return;
     }
 
-    live() {
-        for (const mtd of ["spawn"]) {
-            if (!this[mtd]()) {
-                console.log(`[${this.options.name}] ${mtd}()`);
-                return false;
-            }
-        }
+    if (!this.job()) {
+      return;
     }
+  }
 }
