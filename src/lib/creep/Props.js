@@ -1,4 +1,4 @@
-const options = {
+export const PropCreepParameters = {
   name: "Bunny",
   room: Room,
 
@@ -7,15 +7,16 @@ const options = {
   jobs: [],
 };
 
-const memory = {
+export const PropCreepMemory = {
   body: {},
   job: "",
+  jobGroupIndex: 0,
   jobs: [],
 };
 
-const creep = {
+export const PropCreepCreep = {
   name: "Bunny",
-  memory: memory,
+  memory: PropCreepMemory,
   build: (target) => {},
   harvest: (target, resourceType) => {},
   moveTo: (target) => {},
@@ -25,18 +26,20 @@ const creep = {
 };
 
 export default class Props {
-  options = options;
-  creep = creep;
-  memory = memory;
+  parameters = PropCreepParameters;
+  creep = PropCreepCreep;
+  memory = PropCreepMemory;
   orders = [];
 
-  setOptions(options) {
-    this.options = options;
-    this.setCreep();
+  setParameters(parameters) {
+    this.parameters = parameters;
+    this.setCreep(Game.creeps[this.parameters.name]);
+    return this;
   }
 
-  setCreep(creep = Game.creeps[this.options.name]) {
+  setCreep(creep) {
     this.creep = creep;
     this.memory = this.creep?.memory;
+    return this;
   }
 }

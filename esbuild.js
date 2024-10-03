@@ -9,7 +9,7 @@ const context = await ESBUILD.context({
   minify: false,
   sourcemap: false,
   outfile: "dist/main.js",
-  logLevel: "info",
+  logLevel: "error",
   target: ["node10"],
 
   plugins: [await PUSH(import.meta.dirname)],

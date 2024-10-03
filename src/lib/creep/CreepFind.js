@@ -13,7 +13,7 @@ export default class CreepFind extends CreepMessage {
   static FIND_SPAWNS_ORDER_BY_ENERGY = "FIND_SPAWNS_ORDER_BY_ENERGY";
 
   find(findType = CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY, parameters = { cost: 0, desc: false, type: null }) {
-    const _room = this.creep?.room ?? this.options.room;
+    const _room = this.creep?.room ?? this.parameters.room;
     const _sort = parameters.desc ? desc : asc;
 
     if (findType === CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE) {
@@ -47,7 +47,7 @@ export default class CreepFind extends CreepMessage {
         .find(FIND_MY_STRUCTURES)
         .filter(
           ({ structureType, store }) =>
-            structureType === STRUCTURE_EXTENSION && store.getFreeCapacity(RESOURCE_ENERGY) > 0
+            structureType === STRUCTURE_EXTENSION && store.getFreeCapacity(RESOURCE_ENERGY) > 0,
         )
         .map((source) => ({
           origin: source,

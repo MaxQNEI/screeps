@@ -1,49 +1,164 @@
+import { desc } from "../lib/sort";
+import table from "../lib/table";
+import UpperCaseFirst from "../lib/uc-first";
+import Config from "./config";
 import Creep from "./lib/creep/Creep";
-import CreepJob from "./lib/creep/CreepJob";
+import CreepRole from "./lib/creep/CreepRole";
 
-const Creep1 = (name = "Universal", room = Game.rooms.sim) => {
-  return {
-    name,
-    room,
-    body: { [WORK]: 0.6, [CARRY]: 0.5, [MOVE]: 0.2 },
-    jobs: [
-      [
-        //
-        CreepJob.PICKUP_ENERGY,
-        CreepJob.HARVEST_ENERGY,
-      ],
-      [
-        //
-        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
-        CreepJob.BUILD,
-        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
-      ],
-    ],
-  };
-};
+Memory.rooms = Memory.rooms ?? {};
+Memory.Roads = Memory.Roads ?? {};
 
 export default function loop() {
+  // Clear log
   Memory.log = [];
 
   // Every room
-  for (const nameRoom in Game.rooms) {
-    const room = Game.rooms[nameRoom];
-    // create universal unit
-    new Creep(Creep1("Universal"), room).live();
-    new Creep(Creep1("Universal2", room)).live();
-    new Creep(Creep1("Universal3", room)).live();
-    new Creep(Creep1("Universal4", room)).live();
-    new Creep(Creep1("Universal5", room)).live();
-    new Creep(Creep1("Universal6", room)).live();
-    new Creep(Creep1("Universal7", room)).live();
-    new Creep(Creep1("Universal8", room)).live();
-    new Creep(Creep1("Universal9", room)).live();
-    new Creep(Creep1("Universal10", room)).live();
+  for (const name in Game.rooms) {
+    // Assign
+    const room = Game.rooms[name];
+
+    // Creep count by roles
+    const ccbr = {};
+
+    // Assign zero
+    for (const role in Config.Room.Creeps) {
+      ccbr[role] = 0;
+    }
+
+    // Calc
+    for (const name in Game.creeps) {
+      const creep = Game.creeps[name];
+
+      if (creep.room === room) {
+        // Fix
+        if (creep.memory.role === "Worker") {
+          creep.memory.role = "RoleWorker";
+          creep.memory.jobs = CreepRole.RoleWorker().jobs;
+        }
+
+        // Add/Assign
+        ccbr[creep.memory.role] = (ccbr[creep.memory.role] ?? 0) + 1;
+      }
+    }
+
+    // Write out
+    // {
+    //   table([
+    //     //
+    //     ["", ...Object.keys(ccbr)],
+    //     ["Current", ...Object.values(ccbr)],
+    //     ["Need", ...Object.values(Config.Room.Creeps)],
+    //   ]);
+    // }
+
+    // Spawn
+    {
+      for (const role in Config.Room.Creeps) {
+        if (!ccbr[role] || ccbr[role] < Config.Room.Creeps[role]) {
+          Memory.log.push([
+            //
+            // `<span style="color: tomato;">&lt;loop()&gt;</span>`,
+            `loop()`,
+            `Next spawn ${role} in ${room.name}`,
+          ]);
+
+          new Creep().spawn({ room, ...CreepRole[role]() });
+
+          break;
+        }
+      }
+    }
   }
 
-  for (const msg of Memory.log) {
-    console.log(Game.time, msg);
+  // Roads
+  {
+    for (const coords in Memory.Roads) {
+      if (typeof Memory.Roads[coords] === "number") {
+        delete Memory.Roads[coords];
+        continue;
+      }
+
+      if (Memory.Roads[coords].rate >= 100) {
+        const [x, y] = coords.split("x").map((v) => parseInt(v));
+
+        const room = Game.rooms[Memory.Roads[coords].room];
+        const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
+
+        if (result === ERR_INVALID_TARGET) {
+          delete Memory.Roads[coords];
+        } else {
+          // console.log("result", result, x, y);
+        }
+
+        continue;
+      }
+
+      Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - 0.001);
+
+      if (Memory.Roads[coords].rate === 0) {
+        delete Memory.Roads[coords];
+      }
+    }
+
+    const _entries = Object.entries(Memory.Roads);
+
+    table([
+      ..._entries
+        // .sort(([_1, { update: a }], [_2, { update: b }]) => desc(a, b))
+        .sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b))
+        .map(([coords, { rate }]) => [coords, rate.toFixed(3)])
+        .slice(0, 5),
+      ["", ""],
+      ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
+      ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
+      ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
+      ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
+      ["Total", _entries.length],
+    ]);
+  }
+
+  // Live
+  {
+    for (const name in Game.creeps) {
+      // Add roads rates
+      {
+        const creep = Game.creeps[name];
+        const room = creep.room;
+
+        const structures = room
+          .lookAt(creep.pos)
+          .filter(({ type }) => type === "structure")
+          .map(({ structure: { structureType } }) => structureType);
+
+        if (structures.length === 0) {
+          const { x, y } = creep.pos;
+          const coords = `${x}x${y}`;
+          Memory.Roads[coords] = {
+            //
+            room: room.name,
+            rate: Math.min(100, (Memory.Roads[coords]?.rate ?? 0) + 1),
+            update: Date.now(),
+          };
+        }
+      }
+
+      // ... Live ...
+      new Creep(Game.creeps[name]).live();
+    }
+  }
+
+  // Write out
+  {
+    if (Memory.log.length > 0) {
+      let time = `${(Game.time / 2 / 60 / 60 / 24).toFixed(4)}d`;
+
+      const _table = [[`${Game.time} (${time})`]];
+      for (const msg of Memory.log) {
+        _table.push([...msg]);
+      }
+      table(_table);
+    }
   }
 }
+
+eval(`module.exports.loop = ${loop.name};`);

@@ -1,5 +1,21 @@
+import randOf from "../../../lib/rand-of";
+import distance from "../distance";
 import CreepFind from "./CreepFind";
 import CreepSpawn from "./CreepSpawn";
+
+const VPS = {
+  fill: "transparent",
+  stroke: "#fff",
+  lineStyle: "dashed",
+  strokeWidth: 0.15,
+  opacity: 0.1,
+
+  strokeWidth: 0.1,
+  opacity: 0.5,
+  opacity: 1,
+};
+
+const ATTEMPTS_HARVEST_LIMIT = 10;
 
 export default class CreepJob extends CreepSpawn {
   static BUILD = "BUILD";
@@ -32,6 +48,7 @@ export default class CreepJob extends CreepSpawn {
 
   job() {
     if (!this.creep) {
+      console.log("=(");
       return false;
     }
 
@@ -47,10 +64,12 @@ export default class CreepJob extends CreepSpawn {
           return this.build();
 
         case CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED:
-          const controller = this.find(CreepFind.FIND_ROOM_CONTROLLER);
+          if (this.memory.job !== CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED) {
+            const controller = this.find(CreepFind.FIND_ROOM_CONTROLLER);
 
-          if (controller.ticksToDowngrade > CONTROLLER_DOWNGRADE[controller.level] * 0.7) {
-            return false;
+            if (controller.ticksToDowngrade > CONTROLLER_DOWNGRADE[controller.level] * 0.5) {
+              return false;
+            }
           }
 
           return this.transfer("controller", RESOURCE_ENERGY, "*");
@@ -71,31 +90,45 @@ export default class CreepJob extends CreepSpawn {
 
       if (result) {
         // Continue...
-
+        this.log(`> ${this.memory.job}`);
         return;
       } else {
         this.memory.job = "";
+        this.say("🎖️");
       }
     }
 
-    for (const subJobs of this.memory.jobs) {
-      const _subJobs = Array.isArray(subJobs) ? subJobs : [subJobs];
+    if (!this.memory.job) {
+      let jobGroupIndex = -1;
+      for (const subJobs of this.memory.jobs) {
+        jobGroupIndex++;
 
-      const oneOf = _subJobs.map((name) => ({ name, result: _do(name) })).filter(({ result }) => result);
-
-      if (oneOf.length > 0) {
-        this.log("?", oneOf.map(({ name }) => name).join(", "));
-
-        for (const name of this.orders) {
-          this.creep.cancelOrder(name);
-          this.orders = this.orders.filter((_name) => _name !== name);
+        if (this.memory.jobGroupIndex >= 0 && jobGroupIndex !== this.memory.jobGroupIndex) {
+          continue;
         }
 
-        this.memory.job = oneOf[0].name;
+        const _subJobs = Array.isArray(subJobs) ? subJobs : [subJobs];
 
-        _do(this.memory.job);
+        const oneOf = _subJobs.map((name) => ({ name, result: _do(name) })).filter(({ result }) => result);
 
-        break;
+        if (oneOf.length > 0) {
+          this.log(oneOf[0].name);
+          this.say("☀️");
+
+          for (const name of this.orders) {
+            this.creep.cancelOrder(name);
+            this.orders = this.orders.filter((_name) => _name !== name);
+          }
+
+          this.memory.job = oneOf[0].name;
+          this.memory.jobGroupIndex = jobGroupIndex;
+
+          _do(this.memory.job);
+
+          break;
+        } else {
+          this.memory.jobGroupIndex = -1;
+        }
       }
     }
   }
@@ -106,11 +139,35 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
+    // Full
     if (this.creep.store.getFreeCapacity(resourceType) === 0) {
       return false;
     }
 
-    const target = this.find(CreepFind.FIND_SOURCES_BY_DISTANCE)?.[0];
+    let target;
+
+    // When not available (by other creep)
+    if (
+      this.memory.mySourceId &&
+      this.memory.attemptsHarvestSourceId >= ATTEMPTS_HARVEST_LIMIT &&
+      distance(this.creep.pos, Game.getObjectById(this.memory.mySourceId).pos) <= 8
+    ) {
+      target = randOf(
+        this.find(CreepFind.FIND_SOURCES_BY_DISTANCE).filter((source) => source.id !== this.memory.mySourceId),
+      );
+
+      this.memory.mySourceId = target.id;
+
+      this.memory.attemptsHarvestSourceId = 0;
+    }
+
+    // Find target
+    if (!this.memory.mySourceId) {
+      target = this.find(CreepFind.FIND_SOURCES_BY_DISTANCE)[0];
+      this.memory.mySourceId = target.id;
+    } else {
+      target = Game.getObjectById(this.memory.mySourceId);
+    }
 
     // BREAK if source not found
     if (!target) {
@@ -122,9 +179,16 @@ export default class CreepJob extends CreepSpawn {
 
     if (result === ERR_NOT_IN_RANGE) {
       // this.orders.push("moveTo");
-      this.creep.moveTo(target);
+      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
+      this.say("🚙");
+
+      this.memory.attemptsHarvestSourceId = (this.memory.attemptsHarvestSourceId ?? 0) + 1;
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RES2SAY[result]);
+      this.say("😠");
+    } else if (result === OK) {
+      this.say("⚒️");
+      this.memory.attemptsHarvestSourceId = 0;
     }
 
     return true;
@@ -152,9 +216,13 @@ export default class CreepJob extends CreepSpawn {
 
     if (result === ERR_NOT_IN_RANGE) {
       // this.orders.push("moveTo");
-      this.creep.moveTo(target);
+      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
+      this.say("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RES2SAY[result]);
+      this.say("😠");
+    } else if (result === OK) {
+      this.say("⚒️");
     }
 
     return true;
@@ -196,9 +264,13 @@ export default class CreepJob extends CreepSpawn {
 
     if (result === ERR_NOT_IN_RANGE) {
       // this.orders.push("moveTo");
-      this.creep.moveTo(target);
+      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
+      this.say("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RES2SAY[result]);
+      this.say("😠");
+    } else if (result === OK) {
+      this.say("⚒️");
     }
 
     return true;
@@ -226,9 +298,13 @@ export default class CreepJob extends CreepSpawn {
 
     if (result === ERR_NOT_IN_RANGE) {
       // this.orders.push("moveTo");
-      this.creep.moveTo(target);
+      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
+      this.say("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RES2SAY[result]);
+      this.say("😠");
+    } else if (result === OK) {
+      this.say("⚒️");
     }
 
     return true;

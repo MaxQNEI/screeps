@@ -73,8 +73,8 @@ export default function CalcCreepBody(energy = 300, ratios = { [WORK]: 1, [CARRY
                 .reduce((pv, _name) => pv + _ratios[_name], 0) *
                 1000 *
                 _ratios[name])) /
-              1000
-          )
+              1000,
+          ),
         );
       }
 

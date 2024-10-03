@@ -1,11 +1,20 @@
-import { asc, desc } from "../../../lib/sort";
+import randName from "../../../lib/rand-name";
+import UpperCaseFirst from "../../../lib/uc-first";
 import CalcCreepBody from "./Calc";
 import CreepFind from "./CreepFind";
+import { PropCreepParameters } from "./Props";
 
 export default class CreepSpawn extends CreepFind {
-  spawn() {
+  spawn(parameters = PropCreepParameters) {
+    this.parameters = parameters;
+    this.parameters.name = this.parameters.name || this.name();
+
+    if (!this.parameters.name) {
+      return false;
+    }
+
     // assign
-    this.setCreep();
+    this.setCreep(Game.creeps[this.parameters.name]);
 
     // BREAK if currently spawning
     if (this.creep?.spawning) {
@@ -25,20 +34,21 @@ export default class CreepSpawn extends CreepFind {
       return false;
     }
 
-    const body = Array.isArray(this.options.body)
-      ? this.options.body
-      : CalcCreepBody(spawn.room.energyCapacityAvailable, this.options.body);
+    const body = Array.isArray(this.parameters.body)
+      ? this.parameters.body
+      : CalcCreepBody(spawn.room.energyCapacityAvailable, this.parameters.body);
 
     if (body.length === 0) {
       throw new Error(`body.length: ${body.length}`);
     }
 
     // spawn
-    const result = spawn.spawnCreep(body, this.options.name, {
+    const result = spawn.spawnCreep(body, this.parameters.name, {
       memory: {
+        role: this.parameters.role,
         job: "",
-        jobs: this.options.jobs,
-        body: this.options.body,
+        jobs: this.parameters.jobs,
+        body: this.parameters.body,
       },
     });
 
@@ -47,7 +57,7 @@ export default class CreepSpawn extends CreepFind {
     }
 
     // assign
-    this.setCreep();
+    this.setCreep(Game.creeps[this.parameters.name]);
 
     // BREAK if "problem"
     if (!this.creep) {
@@ -61,5 +71,15 @@ export default class CreepSpawn extends CreepFind {
 
     // DONE if spawned
     return true;
+  }
+
+  name() {
+    let name;
+
+    do {
+      name = UpperCaseFirst(`${randName()} ${this.parameters.role.replace(/^Role/, "").replace(/[aeiouy]/gi, "")}`);
+    } while (Game.creeps[name]);
+
+    return name;
   }
 }

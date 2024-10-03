@@ -15,10 +15,14 @@
     "url": "https://github.com/MaxQNEI/screeps/issues"
   },
   "scripts": {
-    "build": "nodemon esbuild.js -w esbuild.js -w lib/esbuild*"
+    "build": "nodemon esbuild.js -w esbuild.js -w lib/esbuild*",
+    "pretty": "prettier --write lib/ src/"
   },
   "dependencies": {
     "esbuild": "^0.23.1",
     "nodemon": "^3.1.7"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
   }
 }
