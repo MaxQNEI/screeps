@@ -1,6 +1,6 @@
 import randName from "../../../lib/rand-name";
 import UpperCaseFirst from "../../../lib/uc-first";
-import CalcCreepBody from "./Calc";
+import CalcCreepBody from "./CalcCreepBody";
 import CreepFind from "./CreepFind";
 import { PropCreepParameters } from "./Props";
 

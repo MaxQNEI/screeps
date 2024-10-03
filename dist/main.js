@@ -274,7 +274,7 @@
     return string.replace(/(\w+)/g, (m, p1) => `${p1[0].toUpperCase()}${p1.slice(1).toLowerCase()}`);
   }
 
-  // src/lib/creep/Calc.js
+  // src/lib/creep/CalcCreepBody.js
   function CalcCreepBody(energy = 300, ratios = { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 }) {
     const names = Object.keys(ratios);
     let result = [];
@@ -396,8 +396,8 @@
     fill: "transparent",
     stroke: "#fff",
     lineStyle: "dashed",
-    strokeWidth: 0.15,
-    opacity: 0.1,
+    // strokeWidth: 0.15,
+    // opacity: 0.1,
     strokeWidth: 0.2,
     opacity: 1
   };
@@ -632,7 +632,7 @@
     static RoleWorker() {
       return {
         role: "RoleWorker",
-        body: { [WORK]: 1, [CARRY]: 0.3, [MOVE]: 0.3 },
+        body: { [WORK]: 1, [CARRY]: 0.1, [MOVE]: 0.3 },
         jobs: [
           [
             //
@@ -653,7 +653,7 @@
     static RoleBuilder() {
       return {
         role: "RoleBuilder",
-        body: { [WORK]: 1, [CARRY]: 0.3, [MOVE]: 0.3 },
+        body: { [WORK]: 1, [CARRY]: 0.1, [MOVE]: 0.3 },
         jobs: [
           [
             //
@@ -674,7 +674,7 @@
     static RoleManager() {
       return {
         role: "RoleManager",
-        body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 },
+        body: { [WORK]: 1, [CARRY]: 0.2, [MOVE]: 0.3 },
         jobs: [
           [
             //

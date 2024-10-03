@@ -7,8 +7,8 @@ const VPS = {
   fill: "transparent",
   stroke: "#fff",
   lineStyle: "dashed",
-  strokeWidth: 0.15,
-  opacity: 0.1,
+  // strokeWidth: 0.15,
+  // opacity: 0.1,
 
   strokeWidth: 0.2,
   opacity: 1,
@@ -119,11 +119,6 @@ export default class CreepJob extends CreepSpawn {
           this.log(oneOf[0].name);
           this.say("☀️");
 
-          // for (const name of this.orders) {
-          //   this.creep.cancelOrder(name);
-          //   this.orders = this.orders.filter((_name) => _name !== name);
-          // }
-
           this.memory.job = oneOf[0].name;
           this.memory.jobGroupIndex = jobGroupIndex;
 
@@ -176,11 +171,9 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
-    // this.orders.push("harvest");
     const result = this.creep.harvest(target, resourceType);
 
     if (result === ERR_NOT_IN_RANGE) {
-      // this.orders.push("moveTo");
       this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
       !this.dryRun && this.say("🚙");
 
@@ -217,11 +210,9 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
-    // this.orders.push("pickup");
     const result = this.creep.pickup(target);
 
     if (result === ERR_NOT_IN_RANGE) {
-      // this.orders.push("moveTo");
       this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
       !this.dryRun && this.say("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
@@ -265,11 +256,9 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
-    // this.orders.push("transfer");
     const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
 
     if (result === ERR_NOT_IN_RANGE) {
-      // this.orders.push("moveTo");
       this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
       !this.dryRun && this.say("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
@@ -299,11 +288,9 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
-    // this.orders.push("build");
     const result = this.creep.build(target);
 
     if (result === ERR_NOT_IN_RANGE) {
-      // this.orders.push("moveTo");
       this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
       !this.dryRun && this.say("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
