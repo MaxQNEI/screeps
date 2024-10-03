@@ -4,7 +4,7 @@ export default class CreepRole extends CreepJob {
   static RoleWorker() {
     return {
       role: "RoleWorker",
-      body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.2 },
+      body: { [WORK]: 1, [CARRY]: 0.3, [MOVE]: 0.3 },
       jobs: [
         [
           //
@@ -26,7 +26,7 @@ export default class CreepRole extends CreepJob {
   static RoleBuilder() {
     return {
       role: "RoleBuilder",
-      body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 },
+      body: { [WORK]: 1, [CARRY]: 0.3, [MOVE]: 0.3 },
       jobs: [
         [
           //
@@ -48,7 +48,7 @@ export default class CreepRole extends CreepJob {
   static RoleManager() {
     return {
       role: "RoleManager",
-      body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.5 },
+      body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 },
       jobs: [
         [
           //

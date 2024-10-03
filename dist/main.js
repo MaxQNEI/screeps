@@ -13,11 +13,11 @@
 
   // lib/table.js
   function table(rows = []) {
-    var _a3, _b;
+    var _a5, _b;
     const colsWidth = [];
     for (const row of rows) {
       for (let ci = 0; ci < row.length; ci++) {
-        colsWidth[ci] = Math.max(colsWidth[ci] || 0, `${(_a3 = row[ci]) != null ? _a3 : ""}`.length);
+        colsWidth[ci] = Math.max(colsWidth[ci] || 0, `${(_a5 = row[ci]) != null ? _a5 : ""}`.length);
       }
     }
     for (let ci = 0; ci < colsWidth.length; ci++) {
@@ -25,19 +25,20 @@
         row[ci] = `${(_b = row[ci]) != null ? _b : ""}`.padEnd(colsWidth[ci], " ");
       }
     }
-    const fulllen = colsWidth.reduce((pv, cv) => pv + cv, 0) + (colsWidth.length * 4 - 1);
+    let totalLength = 0;
     const out = [];
-    out.push("".padEnd(fulllen, "_"));
     for (const row of rows) {
       out.push(`| ${row.join(" | ")} |`);
     }
-    out.push("".padEnd(fulllen, "\u203E"));
-    console.log(out.join("\n"));
-  }
-
-  // lib/uc-first.js
-  function UpperCaseFirst(string) {
-    return string.replace(/(\w+)/g, (m, p1) => `${p1[0].toUpperCase()}${p1.slice(1).toLowerCase()}`);
+    totalLength = out[0].length;
+    console.log(
+      [
+        //
+        "".padEnd(totalLength, "_"),
+        ...out,
+        "".padEnd(totalLength, "\u203E")
+      ].join("\n")
+    );
   }
 
   // src/config.js
@@ -110,9 +111,9 @@
       return this;
     }
     setCreep(creep) {
-      var _a3;
+      var _a5;
       this.creep = creep;
-      this.memory = (_a3 = this.creep) == null ? void 0 : _a3.memory;
+      this.memory = (_a5 = this.creep) == null ? void 0 : _a5.memory;
       return this;
     }
   };
@@ -124,17 +125,22 @@
       __publicField(this, "says", []);
     }
     log(...msg) {
-      var _a3, _b;
-      const TTL = (
-        // this.creep?.ticksToLive >= 0 ? `/<span style="color: deepslate;">${this.creep?.ticksToLive}</span>` : "";
-        // this.creep?.ticksToLive >= 0 ? ` (TTL:${this.creep?.ticksToLive})` : "";
-        ((_a3 = this.creep) == null ? void 0 : _a3.ticksToLive) >= 0 ? ` (${(((_b = this.creep) == null ? void 0 : _b.ticksToLive) / 1500 * 100).toFixed(2)}%)` : ""
+      var _a5;
+      const TTL = "";
+      const I = [];
+      I.push(
+        [
+          //
+          `\u2764\uFE0F${(((_a5 = this.creep) == null ? void 0 : _a5.ticksToLive) / 1500 * 100).toFixed(2)}%`,
+          `\u26A1${(this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY) * 100).toFixed(2)}%`
+        ].join(" | ")
       );
       Memory.log.push([
         //
         // `<span style="color: yellowgreen; font-style: italic;">${this.creep?.name || this.parameters.name}</span>${TTL}`,
         `[${this.creep.room.name}] ${this.creep.name || this.parameters.name}${TTL}`,
-        ...msg
+        ...msg,
+        ...I
       ]);
     }
     say(msg) {
@@ -145,8 +151,8 @@
   // src/lib/creep/CreepFind.js
   var _CreepFind = class _CreepFind extends CreepMessage {
     find(findType = _CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY, parameters = { cost: 0, desc: false, type: null }) {
-      var _a3, _b;
-      const _room = (_b = (_a3 = this.creep) == null ? void 0 : _a3.room) != null ? _b : this.parameters.room;
+      var _a5, _b;
+      const _room = (_b = (_a5 = this.creep) == null ? void 0 : _a5.room) != null ? _b : this.parameters.room;
       const _sort = parameters.desc ? desc : asc;
       if (findType === _CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE) {
         const constructionSites = _room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
@@ -235,7 +241,7 @@
       while (out2.length < length || out2.slice(-3).indexOf("-") !== -1) {
         vowel = randOf(vowels);
         consonant = randOf(consonants);
-        if (!hyphenation && rand(0, 100) > 90) {
+        if (!hyphenation && rand(0, 100) > 80) {
           hyphenation = true;
           lockHyphenation = true;
           consonant = `${consonant}-`;
@@ -261,6 +267,11 @@
     }
     return out.join(" ");
     return new Array(rand(0, 100) > 20 ? 2 : 1).fill(null).map(generate).join(" ");
+  }
+
+  // lib/uc-first.js
+  function UpperCaseFirst(string) {
+    return string.replace(/(\w+)/g, (m, p1) => `${p1[0].toUpperCase()}${p1.slice(1).toLowerCase()}`);
   }
 
   // src/lib/creep/Calc.js
@@ -330,14 +341,14 @@
   // src/lib/creep/CreepSpawn.js
   var CreepSpawn = class _CreepSpawn extends CreepFind {
     spawn(parameters = PropCreepParameters) {
-      var _a3, _b;
+      var _a5, _b;
       this.parameters = parameters;
       this.parameters.name = this.parameters.name || this.name();
       if (!this.parameters.name) {
         return false;
       }
       this.setCreep(Game.creeps[this.parameters.name]);
-      if ((_a3 = this.creep) == null ? void 0 : _a3.spawning) {
+      if ((_a5 = this.creep) == null ? void 0 : _a5.spawning) {
         return false;
       }
       if (this.creep) {
@@ -387,12 +398,16 @@
     lineStyle: "dashed",
     strokeWidth: 0.15,
     opacity: 0.1,
-    strokeWidth: 0.1,
-    opacity: 0.5,
+    strokeWidth: 0.2,
     opacity: 1
   };
-  var ATTEMPTS_HARVEST_LIMIT = 10;
+  var ATTEMPTS_HARVEST_DISTANCE = 8;
+  var ATTEMPTS_HARVEST_LIMIT = 20;
   var _CreepJob = class _CreepJob extends CreepSpawn {
+    constructor() {
+      super(...arguments);
+      __publicField(this, "dryRun", false);
+    }
     job() {
       if (!this.creep) {
         console.log("=(");
@@ -440,14 +455,12 @@
             continue;
           }
           const _subJobs = Array.isArray(subJobs) ? subJobs : [subJobs];
+          this.dryRun = true;
           const oneOf = _subJobs.map((name) => ({ name, result: _do(name) })).filter(({ result }) => result);
+          this.dryRun = false;
           if (oneOf.length > 0) {
             this.log(oneOf[0].name);
             this.say("\u2600\uFE0F");
-            for (const name of this.orders) {
-              this.creep.cancelOrder(name);
-              this.orders = this.orders.filter((_name) => _name !== name);
-            }
             this.memory.job = oneOf[0].name;
             this.memory.jobGroupIndex = jobGroupIndex;
             _do(this.memory.job);
@@ -459,20 +472,22 @@
       }
     }
     harvest(resourceType = RESOURCE_ENERGY) {
-      var _a3;
+      var _a5;
       if (!this.creep) {
+        delete this.memory.attemptsHarvestSource;
         return false;
       }
       if (this.creep.store.getFreeCapacity(resourceType) === 0) {
+        delete this.memory.attemptsHarvestSource;
         return false;
       }
       let target;
-      if (this.memory.mySourceId && this.memory.attemptsHarvestSourceId >= ATTEMPTS_HARVEST_LIMIT && distance(this.creep.pos, Game.getObjectById(this.memory.mySourceId).pos) <= 8) {
+      if (this.memory.mySourceId && this.memory.attemptsHarvestSource >= ATTEMPTS_HARVEST_LIMIT) {
         target = randOf(
           this.find(CreepFind.FIND_SOURCES_BY_DISTANCE).filter((source) => source.id !== this.memory.mySourceId)
         );
         this.memory.mySourceId = target.id;
-        this.memory.attemptsHarvestSourceId = 0;
+        this.memory.attemptsHarvestSource = 0;
       }
       if (!this.memory.mySourceId) {
         target = this.find(CreepFind.FIND_SOURCES_BY_DISTANCE)[0];
@@ -486,38 +501,42 @@
       const result = this.creep.harvest(target, resourceType);
       if (result === ERR_NOT_IN_RANGE) {
         this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        this.say("\u{1F699}");
-        this.memory.attemptsHarvestSourceId = ((_a3 = this.memory.attemptsHarvestSourceId) != null ? _a3 : 0) + 1;
+        !this.dryRun && this.say("\u{1F699}");
+        if (distance(this.creep.pos, target.pos) <= ATTEMPTS_HARVEST_DISTANCE) {
+          this.memory.attemptsHarvestSource = ((_a5 = this.memory.attemptsHarvestSource) != null ? _a5 : 0) + 1;
+        } else {
+          delete this.memory.attemptsHarvestSource;
+        }
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        this.say("\u{1F620}");
+        !this.dryRun && this.say("\u{1F620}");
       } else if (result === OK) {
-        this.say("\u2692\uFE0F");
-        this.memory.attemptsHarvestSourceId = 0;
+        !this.dryRun && this.say("\u2692\uFE0F");
+        delete this.memory.attemptsHarvestSource;
       }
       return true;
     }
     pickup(resourceType = RESOURCE_ENERGY) {
-      var _a3;
+      var _a5;
       if (!this.creep) {
         return false;
       }
       if (this.creep.store.getFreeCapacity(resourceType) === 0) {
         return false;
       }
-      const target = (_a3 = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a3[0];
+      const target = (_a5 = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a5[0];
       if (!target) {
         return false;
       }
       const result = this.creep.pickup(target);
       if (result === ERR_NOT_IN_RANGE) {
         this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        this.say("\u{1F699}");
+        !this.dryRun && this.say("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        this.say("\u{1F620}");
+        !this.dryRun && this.say("\u{1F620}");
       } else if (result === OK) {
-        this.say("\u2692\uFE0F");
+        !this.dryRun && this.say("\u2692\uFE0F");
       }
       return true;
     }
@@ -546,36 +565,36 @@
       const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
       if (result === ERR_NOT_IN_RANGE) {
         this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        this.say("\u{1F699}");
+        !this.dryRun && this.say("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        this.say("\u{1F620}");
+        !this.dryRun && this.say("\u{1F620}");
       } else if (result === OK) {
-        this.say("\u2692\uFE0F");
+        !this.dryRun && this.say("\u2692\uFE0F");
       }
       return true;
     }
     build() {
-      var _a3;
+      var _a5;
       if (!this.creep) {
         return false;
       }
       if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
         return false;
       }
-      const target = (_a3 = this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE)) == null ? void 0 : _a3[0];
+      const target = (_a5 = this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE)) == null ? void 0 : _a5[0];
       if (!target) {
         return false;
       }
       const result = this.creep.build(target);
       if (result === ERR_NOT_IN_RANGE) {
         this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        this.say("\u{1F699}");
+        !this.dryRun && this.say("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        this.say("\u{1F620}");
+        !this.dryRun && this.say("\u{1F620}");
       } else if (result === OK) {
-        this.say("\u2692\uFE0F");
+        !this.dryRun && this.say("\u2692\uFE0F");
       }
       return true;
     }
@@ -613,7 +632,7 @@
     static RoleWorker() {
       return {
         role: "RoleWorker",
-        body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.2 },
+        body: { [WORK]: 1, [CARRY]: 0.3, [MOVE]: 0.3 },
         jobs: [
           [
             //
@@ -634,7 +653,7 @@
     static RoleBuilder() {
       return {
         role: "RoleBuilder",
-        body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 },
+        body: { [WORK]: 1, [CARRY]: 0.3, [MOVE]: 0.3 },
         jobs: [
           [
             //
@@ -655,7 +674,7 @@
     static RoleManager() {
       return {
         role: "RoleManager",
-        body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.5 },
+        body: { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 },
         jobs: [
           [
             //
@@ -696,8 +715,12 @@
   Memory.rooms = (_a = Memory.rooms) != null ? _a : {};
   var _a2;
   Memory.Roads = (_a2 = Memory.Roads) != null ? _a2 : {};
+  var _a3;
+  Memory.RoadsShow = (_a3 = Memory.RoadsShow) != null ? _a3 : false;
+  var _a4;
+  Memory.CreepsShow = (_a4 = Memory.CreepsShow) != null ? _a4 : false;
   function loop() {
-    var _a3, _b, _c;
+    var _a5, _b, _c;
     Memory.log = [];
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
@@ -712,8 +735,16 @@
             creep.memory.role = "RoleWorker";
             creep.memory.jobs = CreepRole.RoleWorker().jobs;
           }
-          ccbr[creep.memory.role] = ((_a3 = ccbr[creep.memory.role]) != null ? _a3 : 0) + 1;
+          ccbr[creep.memory.role] = ((_a5 = ccbr[creep.memory.role]) != null ? _a5 : 0) + 1;
         }
+      }
+      if (Memory.CreepsShow) {
+        table([
+          //
+          ["", ...Object.keys(ccbr)],
+          ["Current", ...Object.values(ccbr)],
+          ["Need", ...Object.values(config_default.Room.Creeps)]
+        ]);
       }
       {
         for (const role in config_default.Room.Creeps) {
@@ -751,16 +782,18 @@
           delete Memory.Roads[coords];
         }
       }
-      const _entries = Object.entries(Memory.Roads);
-      table([
-        ..._entries.sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b)).map(([coords, { rate }]) => [coords, rate.toFixed(3)]).slice(0, 5),
-        ["", ""],
-        ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
-        ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
-        ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
-        ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
-        ["Total", _entries.length]
-      ]);
+      if (Memory.RoadsShow) {
+        const _entries = Object.entries(Memory.Roads);
+        table([
+          ..._entries.sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b)).map(([coords, { rate }]) => [coords, rate.toFixed(3)]).slice(0, 5),
+          ["", ""],
+          ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
+          ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
+          ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
+          ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
+          ["Total", _entries.length]
+        ]);
+      }
     }
     {
       for (const name in Game.creeps) {

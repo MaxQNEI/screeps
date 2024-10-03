@@ -1,12 +1,14 @@
 import { desc } from "../lib/sort";
 import table from "../lib/table";
-import UpperCaseFirst from "../lib/uc-first";
 import Config from "./config";
 import Creep from "./lib/creep/Creep";
 import CreepRole from "./lib/creep/CreepRole";
 
 Memory.rooms = Memory.rooms ?? {};
 Memory.Roads = Memory.Roads ?? {};
+
+Memory.RoadsShow = Memory.RoadsShow ?? false;
+Memory.CreepsShow = Memory.CreepsShow ?? false;
 
 export default function loop() {
   // Clear log
@@ -42,14 +44,14 @@ export default function loop() {
     }
 
     // Write out
-    // {
-    //   table([
-    //     //
-    //     ["", ...Object.keys(ccbr)],
-    //     ["Current", ...Object.values(ccbr)],
-    //     ["Need", ...Object.values(Config.Room.Creeps)],
-    //   ]);
-    // }
+    if (Memory.CreepsShow) {
+      table([
+        //
+        ["", ...Object.keys(ccbr)],
+        ["Current", ...Object.values(ccbr)],
+        ["Need", ...Object.values(Config.Room.Creeps)],
+      ]);
+    }
 
     // Spawn
     {
@@ -100,21 +102,23 @@ export default function loop() {
       }
     }
 
-    const _entries = Object.entries(Memory.Roads);
+    if (Memory.RoadsShow) {
+      const _entries = Object.entries(Memory.Roads);
 
-    table([
-      ..._entries
-        // .sort(([_1, { update: a }], [_2, { update: b }]) => desc(a, b))
-        .sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b))
-        .map(([coords, { rate }]) => [coords, rate.toFixed(3)])
-        .slice(0, 5),
-      ["", ""],
-      ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
-      ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
-      ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
-      ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
-      ["Total", _entries.length],
-    ]);
+      table([
+        ..._entries
+          // .sort(([_1, { update: a }], [_2, { update: b }]) => desc(a, b))
+          .sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b))
+          .map(([coords, { rate }]) => [coords, rate.toFixed(3)])
+          .slice(0, 5),
+        ["", ""],
+        ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
+        ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
+        ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
+        ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
+        ["Total", _entries.length],
+      ]);
+    }
   }
 
   // Live
