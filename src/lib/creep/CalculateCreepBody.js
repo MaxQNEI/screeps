@@ -1,6 +1,6 @@
 import { asc, desc } from "../../../lib/sort";
 
-export default function CalcCreepBody(energy = 300, ratios = { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 }) {
+export default function CalculateCreepBody(energy = 300, ratios = { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 }) {
   const names = Object.keys(ratios);
 
   let result = [];

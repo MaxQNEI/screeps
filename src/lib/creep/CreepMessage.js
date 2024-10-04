@@ -10,17 +10,13 @@ export default class CreepMessage extends Props {
 
   log(...msg) {
     const TTL = "";
-    // this.creep?.ticksToLive >= 0 ? `/<span style="color: deepslate;">${this.creep?.ticksToLive}</span>` : "";
-    // this.creep?.ticksToLive >= 0 ? ` (TTL:${this.creep?.ticksToLive})` : "";
-    // this.creep?.ticksToLive >= 0 ? ` (❤️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%)` : "";
 
     const I = [];
 
     I.push(
       [
         //
-        // `❤️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`.padEnd(8, " "),
-        `⏱️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`.padEnd(8, " "),
+        `⏱️${((this.creep?.ticksToLive / CREEP_LIFE_TIME) * 100).toFixed(2)}%`.padEnd(8, " "),
 
         `⚡${((this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY)) * 100).toFixed(2)}%`.padEnd(
           8,

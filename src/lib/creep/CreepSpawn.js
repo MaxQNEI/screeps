@@ -1,6 +1,6 @@
 import randName from "../../../lib/rand-name";
 import UpperCaseFirst from "../../../lib/uc-first";
-import CalcCreepBody from "./CalcCreepBody";
+import CalculateCreepBody from "./CalculateCreepBody";
 import CreepFind from "./CreepFind";
 import { PropCreepParameters } from "./Props";
 
@@ -34,7 +34,7 @@ export default class CreepSpawn extends CreepFind {
       return false;
     }
 
-    const body = CalcCreepBody(spawn.room.energyCapacityAvailable, this.parameters.bodyRatios);
+    const body = CalculateCreepBody(spawn.room.energyCapacityAvailable, this.parameters.bodyRatios);
 
     if (body.length === 0) {
       throw new Error(`body.length: ${body.length}`);

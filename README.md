@@ -1,74 +1,133 @@
 # Scripts for the game [Screeps.com](https://screeps.com/)
 
----
+# Current Opportunities
 
-# Help
-
-## Room.lookAt examples:
+1. Group jobs - Creep is created with grouped tasks - when completing a job in a group, the creep will attempt to perform another job from the same job group.
 
 ```JavaScript
-// Source (+Wall)
 [
-    {
-        "type": "source",
-        "source": {
-            "room": {
-                "name": "W41N48",
-                "energyAvailable": 300,
-                "energyCapacityAvailable": 300,
-                "visual": { "roomName": "W41N48" }
-            },
-            "pos": { "x": 12, "y": 21, "roomName": "W41N48" },
-            "id": "5bbcaac09099fc012e632228",
-            "energy": 2950,
-            "energyCapacity": 3000,
-            "ticksToRegeneration": 33
-        }
-    },
-    { "type": "terrain", "terrain": "wall" }
+    /* First group to work */
+    [
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.BUILD,
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+    ],
+    /* Second group to work */
+    [
+        CreepJob.PICKUP_ENERGY,
+        CreepJob.HARVEST_ENERGY,
+    ],
+    /* Other groups to work ... */
 ]
-
-// Swapm + Creep
-[
-    {
-        "type": "creep",
-        "creep": {
-            "room": {
-                "name": "W41N48",
-                "energyAvailable": 300,
-                "energyCapacityAvailable": 300,
-                "visual": { "roomName": "W41N48" }
-            },
-            "pos": { "x": 4, "y": 42, "roomName": "W41N48" },
-            "id": "66ec58c021d37ef404bfa442",
-            "name": "Harvester1",
-            "body": [
-                { "type": "work", "hits": 100 },
-                { "type": "carry", "hits": 100 },
-                { "type": "move", "hits": 100 }
-            ],
-            "my": true,
-            "owner": { "username": "MaxQNEI" },
-            "spawning": false,
-            "ticksToLive": 743,
-            "carryCapacity": 50,
-            "carry": { "energy": 50 },
-            "store": { "energy": 50 },
-            "fatigue": 0,
-            "hits": 300,
-            "hitsMax": 300
-        }
-    },
-    { "type": "terrain", "terrain": "plain" }
-]
-
-
-// Plain
-[{ "type": "terrain", "terrain": "plain" }]
-
-// Wall
-[{ "type": "terrain", "terrain": "wall" }]
-
-// Swamp
-[{ "type": "terrain", "terrain": "swamp" }]
 ```
+
+---
+
+2. Spawning according to the limits specified in config.js
+```JavaScript
+Config.Room.Creeps.CountByRole....
+```
+
+```JavaScript
+Memory.CreepsShow = false;
+```
+
+---
+
+3. Respawning depending on the remaining ticks of a creep's life
+```JavaScript
+Config.Room.Creeps.AutoRespawnByTicksRemainingPercent = CREEP_LIFE_TIME / 0.1;
+```
+
+```JavaScript
+Memory.CreepsShow = false;
+```
+
+---
+
+4. Calculation of creep body by ratios
+
+```JavaScript
+new Creep().spawn({
+    body: { [WORK]: 42, [CARRY]: 8, [MOVE]: 2 }
+});
+
+// similar (serious 😅)
+
+new Creep().spawn({
+    body: { [WORK]: .42, [CARRY]: .8, [MOVE]: .2 }
+});
+```
+
+> **REQUIRES IMPROVEMENTS**
+
+---
+
+5. Randomly generated creep names by type “Firstname Lastname Role” (no filtering/censorship!)
+```
+Di Xybawo Bldr
+Fawate-Wysi W. Hi Wrkr
+Fi Mngr
+Fic Tuusemaa Mngr
+Fujeqeve Go-Wet Mngr
+Gi-Byg Syxyyfe Wrkr
+Gofol Bldr
+Jevomi-Jemi Sa Wrkr
+Jogaa Jisize Bldr
+Juumu M. Kooxi Wrkr
+Ki-Kul Fyjeguu Wrkr
+Moogixe-Zur Wrkr
+Nyy Di Wrkr
+Riq J. Jimeki-Diz Bldr
+Roomu Gevo Bldr
+Sakyrigi Xe Mngr
+Suri-Qivo Zuquciko Bldr
+Waji-Fiti W. Bazo Mngr
+We Keepa Wrkr
+Zepo Bldr
+```
+
+---
+
+6. Create roads depending on how often a creep passes through a tile
+```JavaScript
+Config.Room.Roads.RateToBuild = 100;
+Config.Room.Roads.RateUpByCreep = 1;
+Config.Room.Roads.RateDownByTick = 0.005;
+```
+
+```JavaScript
+Memory.RoadsShow = false;
+```
+
+> **USES MEMORY**
+
+---
+
+7. “MemoryLog” - creeps logging, MemoryLog at the end of the loop'a outputs a table to the console.
+
+![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](/assets/MemoryLogOut.png)
+
+```JavaScript
+Memory.MemoryLogShow = true;
+```
+
+> **USES MEMORY**
+
+---
+
+8. Notifies about change of level or progress (0.1 from 100%) of Room Controller.  (Game.notify())
+
+> **USES MEMORY**
+
+---
+
+9. Creeps say their status with emoji
+
+> **USES MEMORY**
+
+---
+
+## Not completed, to be continued.

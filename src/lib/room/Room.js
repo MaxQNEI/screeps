@@ -2,100 +2,99 @@ import { asc } from "../../../lib/sort.js";
 import Creep from "../creep/Creep.js";
 import CreepRole from "../creep/CreepRole.js";
 
-export default class Room {
-  run() {
-    this.every();
+const {
+  Room: {
+    Creeps: {
+      CountByRole: CBR,
+      AutoRespawnByTicksRemainingPercent: ARBTRP, //
+    },
+  },
+} = Config;
+
+export default function Room() {
+  // Every room
+  for (const name in Game.rooms) {
+    spawn(Game.rooms[name]);
+  }
+}
+
+function spawn(room) {
+  // Current creep count by roles
+  const CCCBR = {};
+
+  // Assign zero
+  for (const role in CBR) {
+    CCCBR[role] = 0;
   }
 
-  every() {
-    // Every room
-    for (const name in Game.rooms) {
-      // Assign
-      const room = Game.rooms[name];
+  // Calc
+  for (const name in Game.creeps) {
+    const creep = Game.creeps[name];
 
-      // Prcess the room
-      this.room(room);
+    if (creep.room === room) {
+      // Add/Assign
+      CCCBR[creep.memory.role] = (CCCBR[creep.memory.role] ?? 0) + 1;
     }
   }
 
-  room(room) {
-    // Creep count by roles
-    const CCBR = {};
+  // Write out
+  if (Memory.CreepsShow) {
+    table([
+      //
+      ["", ...Object.keys(CCCBR)],
+      ["Current", ...Object.values(CCCBR)],
+      ["Need", ...Object.values(CBR)],
+    ]);
+  }
 
-    // Assign zero
-    for (const role in Config.Room.Creeps) {
-      CCBR[role] = 0;
-    }
+  // Spawn
+  // TODO: Spawn before die
+  // TODO: Spawn by ratio
+  {
+    let next;
+    let reason = "";
 
-    // Calc
-    for (const name in Game.creeps) {
-      const creep = Game.creeps[name];
+    if (!next && ARBTRP > 0) {
+      const nextByTimeList = [];
 
-      if (creep.room === room) {
-        // Add/Assign
-        CCBR[creep.memory.role] = (CCBR[creep.memory.role] ?? 0) + 1;
-      }
-    }
+      for (const name in Game.creeps) {
+        const creep = Game.creeps[name];
 
-    // Write out
-    if (Memory.CreepsShow) {
-      table([
-        //
-        ["", ...Object.keys(CCBR)],
-        ["Current", ...Object.values(CCBR)],
-        ["Need", ...Object.values(Config.Room.Creeps)],
-      ]);
-    }
-
-    // Spawn
-    // TODO: Spawn before die
-    // TODO: Spawn by ratio
-    {
-      let next;
-      let reason = "";
-
-      if (!next) {
-        const nextByTimeList = [];
-
-        for (const name in Game.creeps) {
-          const creep = Game.creeps[name];
-
-          if (creep.spawning) {
-            continue;
-          }
-
-          const left = (creep.ticksToLive / 1500) * 100;
-
-          if (left < 10) {
-            nextByTimeList.push({ left, creep });
-          }
+        if (creep.spawning) {
+          continue;
         }
 
-        const nextByTime = nextByTimeList.sort(({ left: a }, { left: b }) => asc(a, b))[0];
+        const remaining = (creep.ticksToLive / CREEP_LIFE_TIME) * 100;
 
-        if (nextByTime) {
-          const creep = nextByTime.creep;
-          next = { room: creep.room, ...CreepRole[creep.memory.role]() };
-          reason = `Creep "${creep.name}" has ${creep.ticksToLive} ticks left`;
+        if (remaining < Config.AutoRespawnByTicksRemainingPercent) {
+          nextByTimeList.push({ remaining, creep });
         }
       }
 
-      if (!next) {
-        for (const role in Config.Room.Creeps) {
-          if (!CCBR[role] || CCBR[role] < Config.Room.Creeps[role]) {
-            next = { room, ...CreepRole[role]() };
-            reason = `The count of creeps is less than needed.`;
-            break;
-          }
+      const nextByTime = nextByTimeList.sort(({ remaining: a }, { remaining: b }) => asc(a, b))[0];
+
+      if (nextByTime) {
+        const creep = nextByTime.creep;
+        next = { room: creep.room, ...CreepRole[creep.memory.role]() };
+        reason = `Creep "${creep.name}" has ${creep.ticksToLive} ticks remaining`;
+      }
+    }
+
+    if (!next) {
+      for (const role in CBR) {
+        if (!CCCBR[role] || CCCBR[role] < CBR[role]) {
+          next = { room, ...CreepRole[role]() };
+          reason = `The count of creeps is less than needed.`;
+          break;
         }
       }
+    }
 
-      if (next) {
-        Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
-        reason && Memory.log.push(["", `Reason: ${reason}`], []);
+    if (next) {
+      Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
+      reason && Memory.log.push(["", `Reason: ${reason}`], []);
 
-        new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
-      }
+      new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
     }
   }
 }

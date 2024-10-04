@@ -223,9 +223,12 @@ export default class CreepJob extends CreepSpawn {
     }
 
     const result = this.creep.harvest(target, resourceType);
+    this.dryRun && this.creep.cancelOrder("harvest");
 
     if (result === ERR_NOT_IN_RANGE) {
       this.creep.moveTo(target, { visualizePathStyle: VPS });
+
+      this.dryRun && this.creep.cancelOrder("move");
       !this.dryRun && this.status("🚙");
 
       if (distance(this.creep.pos, target.pos) <= CreepJob.ATTEMPTS_HARVEST_DISTANCE) {

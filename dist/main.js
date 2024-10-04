@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { RoleWorker: 3, RoleBuilder: 3, RoleManager: 3 } } };
+  var define_Config_default = { Room: { Creeps: { AutoRespawnByTicksRemainingPercent: null, CountByRole: { RoleWorker: 3, RoleBuilder: 3, RoleManager: 3 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 5e-3 } } };
 
   // lib/rand.js
   function rand(a, b) {
@@ -103,8 +103,7 @@
       I.push(
         [
           //
-          // `❤️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`.padEnd(8, " "),
-          `\u23F1\uFE0F${(((_a = this.creep) == null ? void 0 : _a.ticksToLive) / 1500 * 100).toFixed(2)}%`.padEnd(8, " "),
+          `\u23F1\uFE0F${(((_a = this.creep) == null ? void 0 : _a.ticksToLive) / CREEP_LIFE_TIME * 100).toFixed(2)}%`.padEnd(8, " "),
           `\u26A1${(this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY) * 100).toFixed(2)}%`.padEnd(
             8,
             " "
@@ -181,29 +180,29 @@
       }
       if (findType === _CreepFind.FIND_SPAWN_TO_SPAWN_CREEP_BY_COST) {
         for (const nameSpawn in Game.spawns) {
-          const spawn = Game.spawns[nameSpawn];
-          if (spawn.room === _room && spawn.store[RESOURCE_ENERGY] >= parameters.cost) {
-            return spawn;
+          const spawn2 = Game.spawns[nameSpawn];
+          if (spawn2.room === _room && spawn2.store[RESOURCE_ENERGY] >= parameters.cost) {
+            return spawn2;
           }
         }
         return false;
       }
       if (findType === _CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY) {
-        const spawns = _room.find(FIND_MY_SPAWNS).map((spawn) => ({
-          origin: spawn,
-          free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-          distance: distance(this.creep.pos, spawn.pos)
+        const spawns = _room.find(FIND_MY_SPAWNS).map((spawn2) => ({
+          origin: spawn2,
+          free: spawn2.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+          distance: distance(this.creep.pos, spawn2.pos)
         })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => _sort(a, b)).map(({ origin }) => origin);
         return spawns;
       }
       if (findType === _CreepFind.FIND_SPAWNS_ORDER_BY_ENERGY) {
         const spawns = [];
         for (const nameSpawn in Game.spawns) {
-          const spawn = Game.spawns[nameSpawn];
-          if (spawn.room === _room) {
+          const spawn2 = Game.spawns[nameSpawn];
+          if (spawn2.room === _room) {
             spawns.push({
-              origin: spawn,
-              energy: spawn.store.energy
+              origin: spawn2,
+              energy: spawn2.store.energy
             });
           }
         }
@@ -233,7 +232,7 @@
       while (out2.length < length || out2.slice(-3).indexOf("-") !== -1) {
         vowel = randOf(vowels);
         consonant = randOf(consonants);
-        if (!hyphenation && rand(0, 100) > 80) {
+        if (!hyphenation && rand(0, 100) > 90) {
           hyphenation = true;
           lockHyphenation = true;
           consonant = `${consonant}-`;
@@ -258,7 +257,6 @@
       out.push(generate());
     }
     return out.join(" ");
-    return new Array(rand(0, 100) > 20 ? 2 : 1).fill(null).map(generate).join(" ");
   }
 
   // lib/uc-first.js
@@ -266,8 +264,8 @@
     return string.replace(/(\w+)/g, (m, p1) => `${p1[0].toUpperCase()}${p1.slice(1).toLowerCase()}`);
   }
 
-  // src/lib/creep/CalcCreepBody.js
-  function CalcCreepBody(energy = 300, ratios = { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 }) {
+  // src/lib/creep/CalculateCreepBody.js
+  function CalculateCreepBody(energy = 300, ratios = { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 }) {
     const names = Object.keys(ratios);
     let result = [];
     let _energy = energy;
@@ -307,22 +305,22 @@
         for (const _name of _available) {
           _ratios[_name] = ratios[_name];
         }
-        const add = {};
+        const add2 = {};
         for (const name of _available) {
-          add[name] = Math.min(
+          add2[name] = Math.min(
             1,
             Math.floor(
               _energy / BODYPART_COST[name] * (_available.filter((_name) => _name !== name).reduce((pv, _name) => pv + _ratios[_name], 0) * 1e3 * _ratios[name]) / 1e3
             )
           );
         }
-        if (Object.values(add).filter((v) => v > 0).length === 0) {
-          const higherRatio = Object.entries(add).sort(([_1, a], [_2, b]) => desc(a, b))[0];
+        if (Object.values(add2).filter((v) => v > 0).length === 0) {
+          const higherRatio = Object.entries(add2).sort(([_1, a], [_2, b]) => desc(a, b))[0];
           const [name, _] = higherRatio;
           result.push(name);
         } else {
-          for (const name in add) {
-            add[name] > 0 && result.push(...new Array(add[name]).fill(name));
+          for (const name in add2) {
+            add2[name] > 0 && result.push(...new Array(add2[name]).fill(name));
           }
         }
       }
@@ -346,15 +344,15 @@
       if (this.creep) {
         return true;
       }
-      const spawn = this.find(_CreepSpawn.FIND_SPAWNS_ORDER_BY_ENERGY, { desc: true })[0];
-      if (!spawn) {
+      const spawn2 = this.find(_CreepSpawn.FIND_SPAWNS_ORDER_BY_ENERGY, { desc: true })[0];
+      if (!spawn2) {
         return false;
       }
-      const body = CalcCreepBody(spawn.room.energyCapacityAvailable, this.parameters.bodyRatios);
+      const body = CalculateCreepBody(spawn2.room.energyCapacityAvailable, this.parameters.bodyRatios);
       if (body.length === 0) {
         throw new Error(`body.length: ${body.length}`);
       }
-      const result = spawn.spawnCreep(body, this.parameters.name, {
+      const result = spawn2.spawnCreep(body, this.parameters.name, {
         memory: {
           role: this.parameters.role,
           // bodyRatios: this.parameters.bodyRatios, // ! TODO FEATURE
@@ -488,8 +486,10 @@
         return false;
       }
       const result = this.creep.harvest(target, resourceType);
+      this.dryRun && this.creep.cancelOrder("harvest");
       if (result === ERR_NOT_IN_RANGE) {
         this.creep.moveTo(target, { visualizePathStyle: VPS });
+        this.dryRun && this.creep.cancelOrder("move");
         !this.dryRun && this.status("\u{1F699}");
         if (distance(this.creep.pos, target.pos) <= _CreepJob.ATTEMPTS_HARVEST_DISTANCE) {
           this.memory.attemptsHarvestSource = ((_a = this.memory.attemptsHarvestSource) != null ? _a : 0) + 1;
@@ -713,13 +713,11 @@
   };
 
   // src/lib/process/Live.js
-  var Live = class {
-    run() {
-      for (const name in Game.creeps) {
-        new Creep(Game.creeps[name]).live();
-      }
+  function Live() {
+    for (const name in Game.creeps) {
+      new Creep(Game.creeps[name]).live();
     }
-  };
+  }
 
   // lib/table.js
   function table2(rows = []) {
@@ -773,218 +771,221 @@
   }
 
   // src/lib/process/Observe.js
-  var Observe = class {
-    run() {
-      var _a, _b, _c, _d;
-      Memory.NotiStack = (_a = Memory.NotiStack) != null ? _a : {};
-      const Notifications = {};
-      for (const name in Game.rooms) {
-        const room = Game.rooms[name];
-        if (!Memory.NotiStack[name]) {
-          const rcp2 = this.roomControllerProgress(room);
-          const data = Memory.NotiStack[name] = {
-            level: room.controller.level,
-            progress: rcp2.p_10
-          };
-          (Notifications.ObservationStart = (_b = Notifications.ObservationStart) != null ? _b : []).push(
-            [
-              `Room[${room.name}] controller level observation started, current: ${data.level}`,
-              `Room[${room.name}] controller progress observation started, current: ${rcp2.current} of ${rcp2.total} (${rcp2.percent}%)`
-            ].join("\n")
-          );
-        }
-        const MNS = Memory.NotiStack[name];
-        if (MNS.level !== room.controller.level) {
-          MNS.level = room.controller.level;
-          const notification = {
-            type: "room-controller-level",
-            level: room.controller.level,
-            text: `Room[${room.name}].Controller level is changed to ${room.controller.level} (${room.controller.level - MNS.level})`
-          };
-          (Notifications.RoomControllerLevel = (_c = Notifications.RoomControllerLevel) != null ? _c : []).push(notification.text);
-        }
-        const rcp = this.roomControllerProgress(room);
-        if (MNS.progress !== rcp.p_10) {
-          MNS.progress = rcp.p_10;
-          const notification = {
-            type: "room-controller-progress",
-            progress: room.controller.progress,
-            text: `Room[${room.name}].Controller progress is changed to ${rcp.current} of ${rcp.total} (${rcp.percent}%)`
-          };
-          (Notifications.RoomControllerProgress = (_d = Notifications.RoomControllerProgress) != null ? _d : []).push(notification.text);
-        }
+  function Observe() {
+    var _a, _b, _c, _d;
+    Memory.NotiStack = (_a = Memory.NotiStack) != null ? _a : {};
+    const Notifications = {};
+    for (const name in Game.rooms) {
+      const room = Game.rooms[name];
+      if (!Memory.NotiStack[name]) {
+        const rcp2 = getRoomControllerProgress(room);
+        const data = Memory.NotiStack[name] = {
+          level: room.controller.level,
+          progress: rcp2.p_10
+        };
+        (Notifications.ObservationStart = (_b = Notifications.ObservationStart) != null ? _b : []).push(
+          [
+            `Room[${room.name}] controller level observation started, current: ${data.level}`,
+            `Room[${room.name}] controller progress observation started, current: ${rcp2.current} of ${rcp2.total} (${rcp2.percent}%)`
+          ].join("\n")
+        );
       }
-      for (const key in Notifications) {
-        Game.notify(Notifications[key].join("\n\n"));
+      const MNS = Memory.NotiStack[name];
+      if (MNS.level !== room.controller.level) {
+        MNS.level = room.controller.level;
+        const notification = {
+          type: "room-controller-level",
+          level: room.controller.level,
+          text: `Room[${room.name}].Controller level is changed to ${room.controller.level} (${room.controller.level - MNS.level})`
+        };
+        (Notifications.RoomControllerLevel = (_c = Notifications.RoomControllerLevel) != null ? _c : []).push(notification.text);
+      }
+      const rcp = getRoomControllerProgress(room);
+      if (MNS.progress !== rcp.p_10) {
+        MNS.progress = rcp.p_10;
+        const notification = {
+          type: "room-controller-progress",
+          progress: room.controller.progress,
+          text: `Room[${room.name}].Controller progress is changed to ${rcp.current} of ${rcp.total} (${rcp.percent}%)`
+        };
+        (Notifications.RoomControllerProgress = (_d = Notifications.RoomControllerProgress) != null ? _d : []).push(notification.text);
       }
     }
-    roomControllerProgress(room) {
-      const controller = room.controller;
-      const current = controller.progress;
-      const total = controller.progressTotal;
-      const percent = parseInt(current / total * 100);
-      const p_10 = Math.floor(percent / 10);
-      return { current, total, percent, p_10 };
+    for (const key in Notifications) {
+      Game.notify(Notifications[key].join("\n\n"));
     }
-  };
+  }
+  function getRoomControllerProgress(room) {
+    const controller = room.controller;
+    const current = controller.progress;
+    const total = controller.progressTotal;
+    const percent = parseInt(current / total * 100);
+    const p_10 = Math.floor(percent / 10);
+    return { current, total, percent, p_10 };
+  }
 
   // src/lib/room/Room.js
-  var Room2 = class {
-    run() {
-      this.every();
-    }
-    every() {
-      for (const name in Game.rooms) {
-        const room = Game.rooms[name];
-        this.room(room);
+  var {
+    Room: {
+      Creeps: {
+        CountByRole: CBR,
+        AutoRespawnByTicksRemainingPercent: ARBTRP
+        //
       }
     }
-    room(room) {
-      var _a;
-      const CCBR = {};
-      for (const role in define_Config_default.Room.Creeps) {
-        CCBR[role] = 0;
-      }
-      for (const name in Game.creeps) {
-        const creep = Game.creeps[name];
-        if (creep.room === room) {
-          CCBR[creep.memory.role] = ((_a = CCBR[creep.memory.role]) != null ? _a : 0) + 1;
-        }
-      }
-      if (Memory.CreepsShow) {
-        table([
-          //
-          ["", ...Object.keys(CCBR)],
-          ["Current", ...Object.values(CCBR)],
-          ["Need", ...Object.values(define_Config_default.Room.Creeps)]
-        ]);
-      }
-      {
-        let next;
-        let reason = "";
-        if (!next) {
-          const nextByTimeList = [];
-          for (const name in Game.creeps) {
-            const creep = Game.creeps[name];
-            if (creep.spawning) {
-              continue;
-            }
-            const left = creep.ticksToLive / 1500 * 100;
-            if (left < 10) {
-              nextByTimeList.push({ left, creep });
-            }
-          }
-          const nextByTime = nextByTimeList.sort(({ left: a }, { left: b }) => asc(a, b))[0];
-          if (nextByTime) {
-            const creep = nextByTime.creep;
-            next = { room: creep.room, ...CreepRole[creep.memory.role]() };
-            reason = `Creep "${creep.name}" has ${creep.ticksToLive} ticks left`;
-          }
-        }
-        if (!next) {
-          for (const role in define_Config_default.Room.Creeps) {
-            if (!CCBR[role] || CCBR[role] < define_Config_default.Room.Creeps[role]) {
-              next = { room, ...CreepRole[role]() };
-              reason = `The count of creeps is less than needed.`;
-              break;
-            }
-          }
-        }
-        if (next) {
-          Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
-          reason && Memory.log.push(["", `Reason: ${reason}`], []);
-          new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
-        }
+  } = define_Config_default;
+  function Room2() {
+    for (const name in Game.rooms) {
+      spawn(Game.rooms[name]);
+    }
+  }
+  function spawn(room) {
+    var _a;
+    const CCCBR = {};
+    for (const role in CBR) {
+      CCCBR[role] = 0;
+    }
+    for (const name in Game.creeps) {
+      const creep = Game.creeps[name];
+      if (creep.room === room) {
+        CCCBR[creep.memory.role] = ((_a = CCCBR[creep.memory.role]) != null ? _a : 0) + 1;
       }
     }
-  };
-
-  // src/lib/structures/ProceduralRoads.js
-  var _ProceduralRoads = class _ProceduralRoads {
-    run() {
-      var _a, _b;
-      Memory.RoadsShow = (_a = Memory.RoadsShow) != null ? _a : false;
-      Memory.Roads = (_b = Memory.Roads) != null ? _b : {};
-      this.calculate();
-      this.add();
-      this.log();
-    }
-    calculate() {
-      for (const coords in Memory.Roads) {
-        if (Memory.Roads[coords].rate >= _ProceduralRoads.RATE_BUILD) {
-          const [x, y] = coords.split("x").map((v) => parseInt(v));
-          this.build(x, y);
-          continue;
-        }
-        Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - _ProceduralRoads.RATE_DOWN);
-        if (Memory.Roads[coords].rate === 0) {
-          delete Memory.Roads[coords];
-        }
-      }
-    }
-    add() {
-      var _a, _b;
-      for (const name in Game.creeps) {
-        const creep = Game.creeps[name];
-        if (creep.spawning) {
-          continue;
-        }
-        const room = creep.room;
-        const { x, y } = creep.pos;
-        const structures = room.lookAt({ x, y }).filter(({ type }) => type === "structure").map(({ structure: { structureType } }) => structureType);
-        if (structures.length > 0) {
-          continue;
-        }
-        const key = `${x}x${y}`;
-        Memory.Roads[key] = {
-          // Room name
-          room: room.name,
-          // Rate to build
-          rate: Math.min(
-            _ProceduralRoads.RATE_BUILD,
-            ((_b = (_a = Memory.Roads[key]) == null ? void 0 : _a.rate) != null ? _b : _ProceduralRoads.RATE_DOWN) + _ProceduralRoads.RATE_UP
-          ),
-          // Last rate update
-          update: Date.now()
-        };
-      }
-    }
-    log() {
-      if (!Memory.RoadsShow) {
-        return;
-      }
-      const _entries = Object.entries(Memory.Roads);
-      table2([
-        ..._entries.sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b)).map(([coords, { rate }]) => [coords, rate.toFixed(3)]).slice(0, 5),
-        ["", ""],
-        ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
-        ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
-        ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
-        ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
-        ["Total", _entries.length]
+    if (Memory.CreepsShow) {
+      table([
+        //
+        ["", ...Object.keys(CCCBR)],
+        ["Current", ...Object.values(CCCBR)],
+        ["Need", ...Object.values(CBR)]
       ]);
     }
-    build(x, y) {
-      const key = `${x}x${y}`;
-      const room = Game.rooms[Memory.Roads[key].room];
-      const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
-      if (result === ERR_INVALID_TARGET) {
-        delete Memory.Roads[key];
+    {
+      let next;
+      let reason = "";
+      if (!next && ARBTRP > 0) {
+        const nextByTimeList = [];
+        for (const name in Game.creeps) {
+          const creep = Game.creeps[name];
+          if (creep.spawning) {
+            continue;
+          }
+          const remaining = creep.ticksToLive / CREEP_LIFE_TIME * 100;
+          if (remaining < define_Config_default.AutoRespawnByTicksRemainingPercent) {
+            nextByTimeList.push({ remaining, creep });
+          }
+        }
+        const nextByTime = nextByTimeList.sort(({ remaining: a }, { remaining: b }) => asc(a, b))[0];
+        if (nextByTime) {
+          const creep = nextByTime.creep;
+          next = { room: creep.room, ...CreepRole[creep.memory.role]() };
+          reason = `Creep "${creep.name}" has ${creep.ticksToLive} ticks remaining`;
+        }
+      }
+      if (!next) {
+        for (const role in CBR) {
+          if (!CCCBR[role] || CCCBR[role] < CBR[role]) {
+            next = { room, ...CreepRole[role]() };
+            reason = `The count of creeps is less than needed.`;
+            break;
+          }
+        }
+      }
+      if (next) {
+        Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
+        reason && Memory.log.push(["", `Reason: ${reason}`], []);
+        new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
       }
     }
-  };
-  __publicField(_ProceduralRoads, "RATE_UP", 1);
-  __publicField(_ProceduralRoads, "RATE_DOWN", 5e-3);
-  __publicField(_ProceduralRoads, "RATE_BUILD", 100);
-  var ProceduralRoads = _ProceduralRoads;
+  }
+
+  // src/lib/structures/ProceduralRoads.js
+  console.log(JSON.stringify(define_Config_default));
+  var {
+    Room: {
+      Roads: {
+        RateToBuild,
+        RateUpByCreep,
+        RateDownByTick
+        //
+      }
+    }
+  } = define_Config_default;
+  function ProceduralRoads() {
+    var _a, _b;
+    Memory.RoadsShow = (_a = Memory.RoadsShow) != null ? _a : false;
+    Memory.Roads = (_b = Memory.Roads) != null ? _b : {};
+    calculate();
+    add();
+    log();
+  }
+  function calculate() {
+    for (const coords in Memory.Roads) {
+      if (Memory.Roads[coords].rate >= RateToBuild) {
+        const [x, y] = coords.split("x").map((v) => parseInt(v));
+        build(x, y);
+        continue;
+      }
+      Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - RateDownByTick);
+      if (Memory.Roads[coords].rate === 0) {
+        delete Memory.Roads[coords];
+      }
+    }
+  }
+  function add() {
+    var _a, _b;
+    for (const name in Game.creeps) {
+      const creep = Game.creeps[name];
+      if (creep.spawning) {
+        continue;
+      }
+      const room = creep.room;
+      const { x, y } = creep.pos;
+      const structures = room.lookAt({ x, y }).filter(({ type }) => type === "structure").map(({ structure: { structureType } }) => structureType);
+      if (structures.length > 0) {
+        continue;
+      }
+      const key = `${x}x${y}`;
+      Memory.Roads[key] = {
+        // Room name
+        room: room.name,
+        // Rate to build
+        rate: Math.min(RateToBuild, ((_b = (_a = Memory.Roads[key]) == null ? void 0 : _a.rate) != null ? _b : RateDownByTick) + RateUpByCreep),
+        // Last rate update
+        update: Date.now()
+      };
+    }
+  }
+  function log() {
+    if (!Memory.RoadsShow) {
+      return;
+    }
+    const _entries = Object.entries(Memory.Roads);
+    table2([
+      ..._entries.sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b)).map(([coords, { rate }]) => [coords, rate.toFixed(3)]).slice(0, 5),
+      ["", ""],
+      ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
+      ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
+      ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
+      ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
+      ["Total", _entries.length]
+    ]);
+  }
+  function build(x, y) {
+    const key = `${x}x${y}`;
+    const room = Game.rooms[Memory.Roads[key].room];
+    const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
+    if (result === ERR_INVALID_TARGET) {
+      delete Memory.Roads[key];
+    }
+  }
 
   // src/index.js
   function loop() {
     MemoryLog();
-    new Observe().run();
-    new Room2().run();
-    new ProceduralRoads().run();
-    new Live().run();
+    Observe();
+    Room2();
+    ProceduralRoads();
+    Live();
     MemoryLog();
   }
   eval(`module.exports.loop = ${loop.name};`);

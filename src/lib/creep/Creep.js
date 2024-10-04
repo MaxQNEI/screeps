@@ -7,10 +7,6 @@ export default class Creep extends CreepRole {
   }
 
   live() {
-    // if (!this.spawn()) {
-    //   return;
-    // }
-
     if (this.creep.spawning) {
       return;
     }

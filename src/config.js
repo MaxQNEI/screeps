@@ -1,9 +1,22 @@
+import * as Constants from "../lib/Constants.js";
+const { CREEP_LIFE_TIME } = Constants;
+
 const Config = {
   Room: {
     Creeps: {
-      RoleWorker: 3,
-      RoleBuilder: 3,
-      RoleManager: 3,
+      AutoRespawnByTicksRemainingPercent: CREEP_LIFE_TIME / 0.1,
+
+      CountByRole: {
+        RoleWorker: 3,
+        RoleBuilder: 3,
+        RoleManager: 3,
+      },
+    },
+
+    Roads: {
+      RateToBuild: 100,
+      RateUpByCreep: 1,
+      RateDownByTick: 0.005,
     },
   },
 };
