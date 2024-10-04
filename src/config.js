@@ -8,7 +8,7 @@ const Config = {
 
       CountByRole: {
         RoleWorker: 3,
-        RoleBuilder: 3,
+        RoleBuilder: 5,
         RoleManager: 3,
       },
     },

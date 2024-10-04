@@ -19,6 +19,7 @@ export default class CreepJob extends CreepSpawn {
   static BUILD = "BUILD";
   static HARVEST_ENERGY = "HARVEST_ENERGY";
   static PICKUP_ENERGY = "PICKUP_ENERGY";
+  static REPAIR_ROAD_NEAR_SOURCE = "REPAIR_ROAD_NEAR_SOURCE";
   static TRANSFER_ENERGY_TO_CONTROLLER = "TRANSFER_ENERGY_TO_CONTROLLER";
   static TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED = "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED";
   static TRANSFER_ENERGY_TO_EXTENSION = "TRANSFER_ENERGY_TO_EXTENSION";
@@ -54,6 +55,7 @@ export default class CreepJob extends CreepSpawn {
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
       ],
@@ -70,6 +72,7 @@ export default class CreepJob extends CreepSpawn {
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
       ],
@@ -86,6 +89,7 @@ export default class CreepJob extends CreepSpawn {
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
       ],
 
@@ -135,6 +139,9 @@ export default class CreepJob extends CreepSpawn {
 
         case CreepJob.TRANSFER_ENERGY_TO_SPAWN:
           return this.transfer("spawn", RESOURCE_ENERGY, "*");
+
+        case CreepJob.REPAIR_ROAD_NEAR_SOURCE:
+          return this.repair("road-near-source");
       }
     };
 
@@ -248,18 +255,13 @@ export default class CreepJob extends CreepSpawn {
   }
 
   pickup(resourceType = RESOURCE_ENERGY) {
-    // BREAK if creep not exists
-    if (!this.creep) {
-      return false;
-    }
-
     if (this.creep.store.getFreeCapacity(resourceType) === 0) {
       return false;
     }
 
     const target = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)?.[0];
 
-    // BREAK if resource not found
+    // BREAK if target not found
     if (!target) {
       return false;
     }
@@ -280,11 +282,6 @@ export default class CreepJob extends CreepSpawn {
   }
 
   transfer(to = "spawn", resourceType = RESOURCE_ENERGY, amount = 100) {
-    // BREAK if creep not exists
-    if (!this.creep) {
-      return false;
-    }
-
     if (this.creep.store.getUsedCapacity(resourceType) === 0) {
       return false;
     }
@@ -305,7 +302,7 @@ export default class CreepJob extends CreepSpawn {
         break;
     }
 
-    // BREAK if resource not found
+    // BREAK if target not found
     if (!target) {
       return false;
     }
@@ -326,24 +323,19 @@ export default class CreepJob extends CreepSpawn {
   }
 
   build() {
-    // BREAK if creep not exists
-    if (!this.creep) {
-      return false;
-    }
-
     if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
       return false;
     }
 
     const targets = sequence(
       this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
-      [STRUCTURE_EXTENSION, STRUCTURE_ROAD],
+      [STRUCTURE_EXTENSION, STRUCTURE_TOWER], // STRUCTURE_ROAD always end
       ({ structureType }) => structureType,
     );
 
     const target = targets?.[0];
 
-    // BREAK if resource not found
+    // BREAK if target not found
     if (!target) {
       return false;
     }
@@ -358,6 +350,90 @@ export default class CreepJob extends CreepSpawn {
       !this.dryRun && this.status("😠");
     } else if (result === OK) {
       !this.dryRun && this.status("⚒️");
+    }
+
+    return true;
+  }
+
+  repair(to = "road-near-source") {
+    if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+      delete this.memory.myRepairId;
+      return false;
+    }
+
+    let target;
+
+    switch (to) {
+      case "road-near-source":
+        if (this.memory.myRepairId) {
+          const structure = Game.getObjectById(this.memory.myRepairId);
+          const remaining = structure.hits / structure.hitsMax;
+
+          if (remaining >= 1) {
+            delete this.memory.myRepairId;
+          } else {
+            target = structure;
+          }
+        }
+
+        if (!this.memory.myRepairId) {
+          const sources = this.find(CreepFind.FIND_SOURCES_BY_DISTANCE);
+          const roads = [];
+
+          const radius = 1;
+          for (const source of sources) {
+            const { x: sX, y: sY } = source.pos;
+            for (let x = sX - radius; x < sX + radius; x++) {
+              for (let y = sY - radius; y < sY + radius; y++) {
+                if (x === sX && y === sY) {
+                  continue;
+                }
+
+                const road = this.creep.room
+                  .lookAt(x, y)
+                  .filter(({ structure }) => {
+                    if (structure?.structureType !== STRUCTURE_ROAD) {
+                      return false;
+                    }
+                  })
+                  .map(({ structure }) => {
+                    const remaining = structure.hits / structure.hitsMax;
+                    return { origin: structure, remaining };
+                  });
+
+                road[0] && roads.push(road[0]);
+              }
+            }
+          }
+
+          if (roads.length === 0) {
+            return false;
+          }
+
+          const roadLowest = roads.sort(({ remaining: a }, { remaining: b }) => asc(a, b))[0];
+          target = roadLowest[0];
+
+          this.memory.myRepairId = target.id;
+        }
+
+        break;
+    }
+
+    // BREAK if target not found
+    if (!target) {
+      return false;
+    }
+
+    const result = this.creep.repair(target);
+
+    if (result === ERR_NOT_IN_RANGE) {
+      this.creep.moveTo(target, { visualizePathStyle: VPS });
+      !this.dryRun && this.status("🚙");
+    } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
+      this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
+      !this.dryRun && this.status("😠");
+    } else if (result === OK) {
+      !this.dryRun && this.status("🧰");
     }
 
     return true;

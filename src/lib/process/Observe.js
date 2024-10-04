@@ -12,7 +12,7 @@ export default function Observe() {
 
       const data = (Memory.NotiStack[name] = {
         level: room.controller.level,
-        progress: rcp.p_10,
+        progress: rcp.progress,
       });
 
       (Notifications.ObservationStart = Notifications.ObservationStart ?? []).push(
@@ -40,8 +40,8 @@ export default function Observe() {
 
     // Room controller progress
     const rcp = getRoomControllerProgress(room);
-    if (MNS.progress !== rcp.p_10) {
-      MNS.progress = rcp.p_10;
+    if (MNS.progress !== rcp.progress) {
+      MNS.progress = rcp.progress;
 
       const notification = {
         type: "room-controller-progress",
@@ -64,8 +64,8 @@ function getRoomControllerProgress(room) {
 
   const current = controller.progress;
   const total = controller.progressTotal;
-  const percent = parseInt((current / total) * 100);
-  const p_10 = Math.floor(percent / 10);
+  const percent = Math.floor((current / total) * 100);
+  const p_x10 = Math.floor(percent / 10);
 
-  return { current, total, percent, p_10 };
+  return { current, total, percent, p_x10 };
 }

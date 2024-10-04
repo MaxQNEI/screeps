@@ -17,7 +17,7 @@
   }
 
   // lib/sort.js
-  function asc(a, b) {
+  function asc2(a, b) {
     return a === b ? 0 : a > b ? 1 : -1;
   }
   function desc(a, b) {
@@ -129,7 +129,7 @@
       var _a;
       this.memory.statuses = ((_a = this.memory.statuses) != null ? _a : []).filter(({ emoji: emoji2 }) => emoji2 !== emoji2);
       this.memory.statuses.push({ emoji, stopShow: Game.time + stopShow });
-      this.memory.statuses = this.memory.statuses.sort(({ stopShow: a }, { stopShow: b }) => asc(a, b));
+      this.memory.statuses = this.memory.statuses.sort(({ stopShow: a }, { stopShow: b }) => asc2(a, b));
     }
   };
   __publicField(_CreepMessage, "BODY_TO_EMOJI", {
@@ -144,7 +144,7 @@
     find(findType = _CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY, parameters = { cost: 0, desc: false, type: null }) {
       var _a, _b;
       const _room = (_b = (_a = this.creep) == null ? void 0 : _a.room) != null ? _b : this.parameters.room;
-      const _sort = parameters.desc ? desc : asc;
+      const _sort = parameters.desc ? desc : asc2;
       if (findType === _CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE) {
         const constructionSites = _room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
           origin: constructionSite,
@@ -156,7 +156,7 @@
         const sources = _room.find(FIND_DROPPED_RESOURCES).map((source) => ({
           origin: source,
           distance: distance(this.creep.pos, source.pos)
-        })).sort(({ distance: a }, { distance: b }) => asc(a, b)).map(({ origin }) => origin);
+        })).sort(({ distance: a }, { distance: b }) => asc2(a, b)).map(({ origin }) => origin);
         return sources;
       }
       if (findType === _CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY) {
@@ -165,7 +165,7 @@
         ).map((source) => ({
           origin: source,
           distance: distance(this.creep.pos, source.pos)
-        })).sort(({ distance: a }, { distance: b }) => asc(a, b)).map(({ origin }) => origin);
+        })).sort(({ distance: a }, { distance: b }) => asc2(a, b)).map(({ origin }) => origin);
         return extensions;
       }
       if (findType === _CreepFind.FIND_ROOM_CONTROLLER) {
@@ -175,7 +175,7 @@
         const sources = _room.find(FIND_SOURCES).map((source) => ({
           origin: source,
           distance: distance(this.creep.pos, source.pos)
-        })).sort(({ distance: a }, { distance: b }) => asc(a, b)).map(({ origin }) => origin);
+        })).sort(({ distance: a }, { distance: b }) => asc2(a, b)).map(({ origin }) => origin);
         return sources;
       }
       if (findType === _CreepFind.FIND_SPAWN_TO_SPAWN_CREEP_BY_COST) {
@@ -295,7 +295,7 @@
               name,
               count: result.filter((_name) => _name === name).length,
               ratio: ratios[name]
-            })).filter(({ count }) => count > 1).sort(({ ratio: a }, { ratio: b }) => asc(a, b))[0].name;
+            })).filter(({ count }) => count > 1).sort(({ ratio: a }, { ratio: b }) => asc2(a, b))[0].name;
             const _toRemoveIndex = result.indexOf(_toRemove);
             result = result.filter((name, index, array) => index !== _toRemoveIndex);
             _places = MAX_CREEP_SIZE - result.length;
@@ -325,7 +325,7 @@
         }
       }
     }
-    return result.sort(asc);
+    return result.sort(asc2);
   }
 
   // src/lib/creep/CreepSpawn.js
@@ -422,6 +422,8 @@
             return this.transfer("extension", RESOURCE_ENERGY, "*");
           case _CreepJob.TRANSFER_ENERGY_TO_SPAWN:
             return this.transfer("spawn", RESOURCE_ENERGY, "*");
+          case _CreepJob.REPAIR_ROAD_NEAR_SOURCE:
+            return this.repair("road-near-source");
         }
       };
       if (this.memory.job) {
@@ -507,9 +509,6 @@
     }
     pickup(resourceType = RESOURCE_ENERGY) {
       var _a;
-      if (!this.creep) {
-        return false;
-      }
       if (this.creep.store.getFreeCapacity(resourceType) === 0) {
         return false;
       }
@@ -530,9 +529,6 @@
       return true;
     }
     transfer(to = "spawn", resourceType = RESOURCE_ENERGY, amount = 100) {
-      if (!this.creep) {
-        return false;
-      }
       if (this.creep.store.getUsedCapacity(resourceType) === 0) {
         return false;
       }
@@ -564,15 +560,13 @@
       return true;
     }
     build() {
-      if (!this.creep) {
-        return false;
-      }
       if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
         return false;
       }
       const targets = sequence(
         this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
-        [STRUCTURE_EXTENSION, STRUCTURE_ROAD],
+        [STRUCTURE_EXTENSION, STRUCTURE_TOWER],
+        // STRUCTURE_ROAD always end
         ({ structureType }) => structureType
       );
       const target = targets == null ? void 0 : targets[0];
@@ -591,10 +585,75 @@
       }
       return true;
     }
+    repair(to = "road-near-source") {
+      if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+        delete this.memory.myRepairId;
+        return false;
+      }
+      let target;
+      switch (to) {
+        case "road-near-source":
+          if (this.memory.myRepairId) {
+            const structure = Game.getObjectById(this.memory.myRepairId);
+            const remaining = structure.hits / structure.hitsMax;
+            if (remaining >= 1) {
+              delete this.memory.myRepairId;
+            } else {
+              target = structure;
+            }
+          }
+          if (!this.memory.myRepairId) {
+            const sources = this.find(CreepFind.FIND_SOURCES_BY_DISTANCE);
+            const roads = [];
+            const radius = 1;
+            for (const source of sources) {
+              const { x: sX, y: sY } = source.pos;
+              for (let x = sX - radius; x < sX + radius; x++) {
+                for (let y = sY - radius; y < sY + radius; y++) {
+                  if (x === sX && y === sY) {
+                    continue;
+                  }
+                  const road = this.creep.room.lookAt(x, y).filter(({ structure }) => {
+                    if ((structure == null ? void 0 : structure.structureType) !== STRUCTURE_ROAD) {
+                      return false;
+                    }
+                  }).map(({ structure }) => {
+                    const remaining = structure.hits / structure.hitsMax;
+                    return { origin: structure, remaining };
+                  });
+                  road[0] && roads.push(road[0]);
+                }
+              }
+            }
+            if (roads.length === 0) {
+              return false;
+            }
+            const roadLowest = roads.sort(({ remaining: a }, { remaining: b }) => asc(a, b))[0];
+            target = roadLowest[0];
+            this.memory.myRepairId = target.id;
+          }
+          break;
+      }
+      if (!target) {
+        return false;
+      }
+      const result = this.creep.repair(target);
+      if (result === ERR_NOT_IN_RANGE) {
+        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        !this.dryRun && this.status("\u{1F699}");
+      } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
+        this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
+        !this.dryRun && this.status("\u{1F620}");
+      } else if (result === OK) {
+        !this.dryRun && this.status("\u{1F9F0}");
+      }
+      return true;
+    }
   };
   __publicField(_CreepJob, "BUILD", "BUILD");
   __publicField(_CreepJob, "HARVEST_ENERGY", "HARVEST_ENERGY");
   __publicField(_CreepJob, "PICKUP_ENERGY", "PICKUP_ENERGY");
+  __publicField(_CreepJob, "REPAIR_ROAD_NEAR_SOURCE", "REPAIR_ROAD_NEAR_SOURCE");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_CONTROLLER", "TRANSFER_ENERGY_TO_CONTROLLER");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED", "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_EXTENSION", "TRANSFER_ENERGY_TO_EXTENSION");
@@ -628,6 +687,7 @@
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
@@ -643,6 +703,7 @@
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
@@ -658,6 +719,7 @@
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD
       ],
       [
@@ -781,7 +843,7 @@
         const rcp2 = getRoomControllerProgress(room);
         const data = Memory.NotiStack[name] = {
           level: room.controller.level,
-          progress: rcp2.p_10
+          progress: rcp2.progress
         };
         (Notifications.ObservationStart = (_b = Notifications.ObservationStart) != null ? _b : []).push(
           [
@@ -801,8 +863,8 @@
         (Notifications.RoomControllerLevel = (_c = Notifications.RoomControllerLevel) != null ? _c : []).push(notification.text);
       }
       const rcp = getRoomControllerProgress(room);
-      if (MNS.progress !== rcp.p_10) {
-        MNS.progress = rcp.p_10;
+      if (MNS.progress !== rcp.progress) {
+        MNS.progress = rcp.progress;
         const notification = {
           type: "room-controller-progress",
           progress: room.controller.progress,
@@ -819,9 +881,9 @@
     const controller = room.controller;
     const current = controller.progress;
     const total = controller.progressTotal;
-    const percent = parseInt(current / total * 100);
-    const p_10 = Math.floor(percent / 10);
-    return { current, total, percent, p_10 };
+    const percent = Math.floor(current / total * 100);
+    const p_x10 = Math.floor(percent / 10);
+    return { current, total, percent, p_x10 };
   }
 
   // src/lib/room/Room.js
@@ -874,7 +936,7 @@
             nextByTimeList.push({ remaining, creep });
           }
         }
-        const nextByTime = nextByTimeList.sort(({ remaining: a }, { remaining: b }) => asc(a, b))[0];
+        const nextByTime = nextByTimeList.sort(({ remaining: a }, { remaining: b }) => asc2(a, b))[0];
         if (nextByTime) {
           const creep = nextByTime.creep;
           next = { room: creep.room, ...CreepRole[creep.memory.role]() };
@@ -899,7 +961,6 @@
   }
 
   // src/lib/structures/ProceduralRoads.js
-  console.log(JSON.stringify(define_Config_default));
   var {
     Room: {
       Roads: {

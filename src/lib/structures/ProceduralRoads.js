@@ -1,8 +1,6 @@
 import { desc } from "../../../lib/sort.js";
 import table from "../../../lib/table.js";
 
-console.log(JSON.stringify(Config));
-
 const {
   Room: {
     Roads: {
