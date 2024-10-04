@@ -10,6 +10,23 @@
   function desc(a, b) {
     return a === b ? 0 : a > b ? -1 : 1;
   }
+  function sequence(array = [], sequence2 = [], value = (item) => item) {
+    const end = [];
+    return [
+      ...array.filter((v) => {
+        if (sequence2.indexOf(value(v)) === -1) {
+          end.push(v);
+          return false;
+        }
+        return true;
+      }).sort((a, b) => {
+        const ai = sequence2.indexOf(value(a));
+        const bi = sequence2.indexOf(value(b));
+        return ai === -1 ? 1 : ai > bi ? 1 : -1;
+      }),
+      ...end
+    ];
+  }
 
   // lib/table.js
   function table(rows = []) {
@@ -72,15 +89,13 @@
   var PropCreepParameters = {
     name: "Bunny",
     room: Room,
-    body: {},
-    job: "",
-    jobs: []
+    // Screeps Room
+    bodyRatios: {}
   };
   var PropCreepMemory = {
-    body: {},
+    bodyRatios: {},
     job: "",
-    jobGroupIndex: 0,
-    jobs: []
+    jobGroupIndex: 0
   };
   var PropCreepCreep = {
     name: "Bunny",
@@ -119,11 +134,7 @@
   };
 
   // src/lib/creep/CreepMessage.js
-  var CreepMessage = class extends Props {
-    constructor() {
-      super(...arguments);
-      __publicField(this, "says", []);
-    }
+  var _CreepMessage = class _CreepMessage extends Props {
     log(...msg) {
       var _a5;
       const TTL = "";
@@ -131,8 +142,19 @@
       I.push(
         [
           //
-          `\u2764\uFE0F${(((_a5 = this.creep) == null ? void 0 : _a5.ticksToLive) / 1500 * 100).toFixed(2)}%`,
-          `\u26A1${(this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY) * 100).toFixed(2)}%`
+          // `❤️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`.padEnd(8, " "),
+          `\u23F1\uFE0F${(((_a5 = this.creep) == null ? void 0 : _a5.ticksToLive) / 1500 * 100).toFixed(2)}%`.padEnd(8, " "),
+          `\u26A1${(this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY) * 100).toFixed(2)}%`.padEnd(
+            8,
+            " "
+          ),
+          [
+            this.creep.body.map(({ type }) => type).filter((v, i, a) => a.indexOf(v) === i).map((name) => {
+              const count = this.creep.body.filter(({ type: _name }) => _name === name).length;
+              return `${_CreepMessage.BODY_TO_EMOJI[name]}${`x${count}`}`;
+            }).join(" "),
+            `\u{1F4B0}${this.creep.body.reduce((pv, { type }) => pv + BODYPART_COST[type], 0)}`
+          ].join(" = ")
         ].join(" | ")
       );
       Memory.log.push([
@@ -143,10 +165,19 @@
         ...I
       ]);
     }
-    say(msg) {
-      !this.says.includes(msg) && this.says.push(msg);
+    status(emoji) {
+      var _a5;
+      this.memory.statuses = ((_a5 = this.memory.statuses) != null ? _a5 : []).filter(({ e }) => e !== emoji);
+      this.memory.statuses.push({ e: emoji, t: Game.time });
+      this.memory.statuses = this.memory.statuses.sort(({ t: a }, { t: b }) => asc(a, b));
     }
   };
+  __publicField(_CreepMessage, "BODY_TO_EMOJI", {
+    [WORK]: "\u{1F64C}",
+    [CARRY]: "\u{1F392}",
+    [MOVE]: "\u{1F9BF}"
+  });
+  var CreepMessage = _CreepMessage;
 
   // src/lib/creep/CreepFind.js
   var _CreepFind = class _CreepFind extends CreepMessage {
@@ -358,16 +389,15 @@
       if (!spawn) {
         return false;
       }
-      const body = Array.isArray(this.parameters.body) ? this.parameters.body : CalcCreepBody(spawn.room.energyCapacityAvailable, this.parameters.body);
+      const body = CalcCreepBody(spawn.room.energyCapacityAvailable, this.parameters.bodyRatios);
       if (body.length === 0) {
         throw new Error(`body.length: ${body.length}`);
       }
       const result = spawn.spawnCreep(body, this.parameters.name, {
         memory: {
           role: this.parameters.role,
-          job: "",
-          jobs: this.parameters.jobs,
-          body: this.parameters.body
+          // bodyRatios: this.parameters.bodyRatios, // ! TODO FEATURE
+          job: ""
         }
       });
       if (result === ERR_NOT_ENOUGH_ENERGY) {
@@ -394,15 +424,13 @@
   // src/lib/creep/CreepJob.js
   var VPS = {
     fill: "transparent",
-    stroke: "#fff",
+    stroke: "yellowgreen",
     lineStyle: "dashed",
     // strokeWidth: 0.15,
     // opacity: 0.1,
-    strokeWidth: 0.2,
+    strokeWidth: 0.05,
     opacity: 1
   };
-  var ATTEMPTS_HARVEST_DISTANCE = 8;
-  var ATTEMPTS_HARVEST_LIMIT = 20;
   var _CreepJob = class _CreepJob extends CreepSpawn {
     constructor() {
       super(...arguments);
@@ -443,13 +471,13 @@
           this.log(`> ${this.memory.job}`);
           return;
         } else {
-          this.memory.job = "";
-          this.say("\u{1F396}\uFE0F");
+          delete this.memory.job;
+          this.status("\u{1F396}\uFE0F");
         }
       }
       if (!this.memory.job) {
         let jobGroupIndex = -1;
-        for (const subJobs of this.memory.jobs) {
+        for (const subJobs of _CreepJob.ROLE_TO_JOB[this.memory.role]) {
           jobGroupIndex++;
           if (this.memory.jobGroupIndex >= 0 && jobGroupIndex !== this.memory.jobGroupIndex) {
             continue;
@@ -460,7 +488,7 @@
           this.dryRun = false;
           if (oneOf.length > 0) {
             this.log(oneOf[0].name);
-            this.say("\u2600\uFE0F");
+            this.status("\u2600\uFE0F");
             this.memory.job = oneOf[0].name;
             this.memory.jobGroupIndex = jobGroupIndex;
             _do(this.memory.job);
@@ -482,7 +510,7 @@
         return false;
       }
       let target;
-      if (this.memory.mySourceId && this.memory.attemptsHarvestSource >= ATTEMPTS_HARVEST_LIMIT) {
+      if (this.memory.mySourceId && this.memory.attemptsHarvestSource >= _CreepJob.ATTEMPTS_HARVEST_LIMIT) {
         target = randOf(
           this.find(CreepFind.FIND_SOURCES_BY_DISTANCE).filter((source) => source.id !== this.memory.mySourceId)
         );
@@ -500,18 +528,18 @@
       }
       const result = this.creep.harvest(target, resourceType);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        !this.dryRun && this.say("\u{1F699}");
-        if (distance(this.creep.pos, target.pos) <= ATTEMPTS_HARVEST_DISTANCE) {
+        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        !this.dryRun && this.status("\u{1F699}");
+        if (distance(this.creep.pos, target.pos) <= _CreepJob.ATTEMPTS_HARVEST_DISTANCE) {
           this.memory.attemptsHarvestSource = ((_a5 = this.memory.attemptsHarvestSource) != null ? _a5 : 0) + 1;
         } else {
           delete this.memory.attemptsHarvestSource;
         }
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-        this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        !this.dryRun && this.say("\u{1F620}");
+        this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
+        !this.dryRun && this.status("\u{1F620}");
       } else if (result === OK) {
-        !this.dryRun && this.say("\u2692\uFE0F");
+        !this.dryRun && this.status("\u2692\uFE0F");
         delete this.memory.attemptsHarvestSource;
       }
       return true;
@@ -530,13 +558,13 @@
       }
       const result = this.creep.pickup(target);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        !this.dryRun && this.say("\u{1F699}");
+        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        !this.dryRun && this.status("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-        this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        !this.dryRun && this.say("\u{1F620}");
+        this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
+        !this.dryRun && this.status("\u{1F620}");
       } else if (result === OK) {
-        !this.dryRun && this.say("\u2692\uFE0F");
+        !this.dryRun && this.status("\u2692\uFE0F");
       }
       return true;
     }
@@ -564,37 +592,41 @@
       }
       const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        !this.dryRun && this.say("\u{1F699}");
+        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        !this.dryRun && this.status("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-        this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        !this.dryRun && this.say("\u{1F620}");
+        this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
+        !this.dryRun && this.status("\u{1F620}");
       } else if (result === OK) {
-        !this.dryRun && this.say("\u2692\uFE0F");
+        !this.dryRun && this.status("\u2692\uFE0F");
       }
       return true;
     }
     build() {
-      var _a5;
       if (!this.creep) {
         return false;
       }
       if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
         return false;
       }
-      const target = (_a5 = this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE)) == null ? void 0 : _a5[0];
+      const targets = sequence(
+        this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
+        [STRUCTURE_EXTENSION, STRUCTURE_ROAD],
+        ({ structureType }) => structureType
+      );
+      const target = targets == null ? void 0 : targets[0];
       if (!target) {
         return false;
       }
       const result = this.creep.build(target);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-        !this.dryRun && this.say("\u{1F699}");
+        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        !this.dryRun && this.status("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-        this.log(this.memory.job, _CreepJob.RES2SAY[result]);
-        !this.dryRun && this.say("\u{1F620}");
+        this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
+        !this.dryRun && this.status("\u{1F620}");
       } else if (result === OK) {
-        !this.dryRun && this.say("\u2692\uFE0F");
+        !this.dryRun && this.status("\u2692\uFE0F");
       }
       return true;
     }
@@ -606,7 +638,7 @@
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED", "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_EXTENSION", "TRANSFER_ENERGY_TO_EXTENSION");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_SPAWN", "TRANSFER_ENERGY_TO_SPAWN");
-  __publicField(_CreepJob, "RES2SAY", {
+  __publicField(_CreepJob, "RESULT_TO_TEXT", {
     [OK]: "OK",
     [ERR_NOT_OWNER]: "NOT_OWNER",
     [ERR_NO_PATH]: "NO_PATH",
@@ -625,6 +657,55 @@
     [ERR_RCL_NOT_ENOUGH]: "RCL_NOT_ENOUGH",
     [ERR_GCL_NOT_ENOUGH]: "GCL_NOT_ENOUGH"
   });
+  __publicField(_CreepJob, "ATTEMPTS_HARVEST_DISTANCE", 8);
+  // distance()
+  __publicField(_CreepJob, "ATTEMPTS_HARVEST_LIMIT", 20);
+  __publicField(_CreepJob, "ROLE_TO_JOB", {
+    RoleWorker: [
+      [
+        //
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+        _CreepJob.BUILD
+      ],
+      [
+        //
+        _CreepJob.PICKUP_ENERGY,
+        _CreepJob.HARVEST_ENERGY
+      ]
+    ],
+    RoleBuilder: [
+      [
+        //
+        _CreepJob.BUILD,
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
+      ],
+      [
+        //
+        _CreepJob.PICKUP_ENERGY,
+        _CreepJob.HARVEST_ENERGY
+      ]
+    ],
+    RoleManager: [
+      [
+        //
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.BUILD
+      ],
+      [
+        //
+        _CreepJob.PICKUP_ENERGY,
+        _CreepJob.HARVEST_ENERGY
+      ]
+    ]
+  });
   var CreepJob = _CreepJob;
 
   // src/lib/creep/CreepRole.js
@@ -632,63 +713,19 @@
     static RoleWorker() {
       return {
         role: "RoleWorker",
-        body: { [WORK]: 1, [CARRY]: 0.1, [MOVE]: 0.3 },
-        jobs: [
-          [
-            //
-            CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-            CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-            CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
-            CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
-            CreepJob.BUILD
-          ],
-          [
-            //
-            CreepJob.PICKUP_ENERGY,
-            CreepJob.HARVEST_ENERGY
-          ]
-        ]
+        body: { [WORK]: 42, [CARRY]: 8, [MOVE]: 2 }
       };
     }
     static RoleBuilder() {
       return {
         role: "RoleBuilder",
-        body: { [WORK]: 1, [CARRY]: 0.1, [MOVE]: 0.3 },
-        jobs: [
-          [
-            //
-            CreepJob.BUILD,
-            CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-            CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-            CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
-            CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
-          ],
-          [
-            //
-            CreepJob.PICKUP_ENERGY,
-            CreepJob.HARVEST_ENERGY
-          ]
-        ]
+        body: { [WORK]: 42, [CARRY]: 8, [MOVE]: 2 }
       };
     }
     static RoleManager() {
       return {
         role: "RoleManager",
-        body: { [WORK]: 1, [CARRY]: 0.2, [MOVE]: 0.3 },
-        jobs: [
-          [
-            //
-            CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
-            CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-            CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
-            CreepJob.BUILD
-          ],
-          [
-            //
-            CreepJob.PICKUP_ENERGY,
-            CreepJob.HARVEST_ENERGY
-          ]
-        ]
+        body: { [WORK]: 42, [CARRY]: 8, [MOVE]: 2 }
       };
     }
   };
@@ -700,11 +737,15 @@
       this.setCreep(creep);
     }
     live() {
+      var _a5, _b;
       if (this.creep.spawning) {
         return;
       }
       if (!this.job()) {
-        this.says.length > 0 && this.creep.say(this.says.join(""));
+        if (((_b = (_a5 = this.memory) == null ? void 0 : _a5.statuses) == null ? void 0 : _b.length) > 0) {
+          this.memory.statuses = this.memory.statuses.filter(({ t }) => t + 2 > Game.time);
+          this.creep.say(this.memory.statuses.map(({ e }) => e).join(""));
+        }
         return;
       }
     }
@@ -722,6 +763,12 @@
   function loop() {
     var _a5, _b, _c;
     Memory.log = [];
+    {
+      for (const name in Game.creeps) {
+        delete Game.creeps[name].memory.jobs;
+        delete Game.creeps[name].memory.body;
+      }
+    }
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
       const ccbr = {};
@@ -777,7 +824,7 @@
           }
           continue;
         }
-        Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - 1e-3);
+        Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - 0.01);
         if (Memory.Roads[coords].rate === 0) {
           delete Memory.Roads[coords];
         }

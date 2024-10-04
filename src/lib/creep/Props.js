@@ -1,17 +1,14 @@
 export const PropCreepParameters = {
   name: "Bunny",
-  room: Room,
+  room: Room, // Screeps Room
 
-  body: {},
-  job: "",
-  jobs: [],
+  bodyRatios: {},
 };
 
 export const PropCreepMemory = {
-  body: {},
+  bodyRatios: {},
   job: "",
   jobGroupIndex: 0,
-  jobs: [],
 };
 
 export const PropCreepCreep = {

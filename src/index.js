@@ -14,6 +14,14 @@ export default function loop() {
   // Clear log
   Memory.log = [];
 
+  // Garbage
+  {
+    for (const name in Game.creeps) {
+      delete Game.creeps[name].memory.jobs;
+      delete Game.creeps[name].memory.body;
+    }
+  }
+
   // Every room
   for (const name in Game.rooms) {
     // Assign
@@ -95,7 +103,7 @@ export default function loop() {
         continue;
       }
 
-      Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - 0.001);
+      Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - 0.01);
 
       if (Memory.Roads[coords].rate === 0) {
         delete Memory.Roads[coords];
@@ -111,7 +119,9 @@ export default function loop() {
           .sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b))
           .map(([coords, { rate }]) => [coords, rate.toFixed(3)])
           .slice(0, 5),
+
         ["", ""],
+
         ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
         ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
         ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],

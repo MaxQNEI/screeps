@@ -1,21 +1,19 @@
 import randOf from "../../../lib/rand-of";
+import sequence from "../../../lib/sort";
 import distance from "../distance";
 import CreepFind from "./CreepFind";
 import CreepSpawn from "./CreepSpawn";
 
 const VPS = {
   fill: "transparent",
-  stroke: "#fff",
+  stroke: "yellowgreen",
   lineStyle: "dashed",
   // strokeWidth: 0.15,
   // opacity: 0.1,
 
-  strokeWidth: 0.2,
+  strokeWidth: 0.05,
   opacity: 1,
 };
-
-const ATTEMPTS_HARVEST_DISTANCE = 8; // distance()
-const ATTEMPTS_HARVEST_LIMIT = 20;
 
 export default class CreepJob extends CreepSpawn {
   static BUILD = "BUILD";
@@ -26,7 +24,7 @@ export default class CreepJob extends CreepSpawn {
   static TRANSFER_ENERGY_TO_EXTENSION = "TRANSFER_ENERGY_TO_EXTENSION";
   static TRANSFER_ENERGY_TO_SPAWN = "TRANSFER_ENERGY_TO_SPAWN";
 
-  static RES2SAY = {
+  static RESULT_TO_TEXT = {
     [OK]: "OK",
     [ERR_NOT_OWNER]: "NOT_OWNER",
     [ERR_NO_PATH]: "NO_PATH",
@@ -44,6 +42,59 @@ export default class CreepJob extends CreepSpawn {
     [ERR_NOT_ENOUGH_EXTENSIONS]: "NOT_ENOUGH_EXTENSIONS",
     [ERR_RCL_NOT_ENOUGH]: "RCL_NOT_ENOUGH",
     [ERR_GCL_NOT_ENOUGH]: "GCL_NOT_ENOUGH",
+  };
+
+  static ATTEMPTS_HARVEST_DISTANCE = 8; // distance()
+  static ATTEMPTS_HARVEST_LIMIT = 20;
+
+  static ROLE_TO_JOB = {
+    RoleWorker: [
+      [
+        //
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+        CreepJob.BUILD,
+      ],
+      [
+        //
+        CreepJob.PICKUP_ENERGY,
+        CreepJob.HARVEST_ENERGY,
+      ],
+    ],
+
+    RoleBuilder: [
+      [
+        //
+        CreepJob.BUILD,
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+      ],
+      [
+        //
+        CreepJob.PICKUP_ENERGY,
+        CreepJob.HARVEST_ENERGY,
+      ],
+    ],
+
+    RoleManager: [
+      [
+        //
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.BUILD,
+      ],
+
+      [
+        //
+        CreepJob.PICKUP_ENERGY,
+        CreepJob.HARVEST_ENERGY,
+      ],
+    ],
   };
 
   dryRun = false;
@@ -95,14 +146,14 @@ export default class CreepJob extends CreepSpawn {
         this.log(`> ${this.memory.job}`);
         return;
       } else {
-        this.memory.job = "";
-        this.say("🎖️");
+        delete this.memory.job;
+        this.status("🎖️");
       }
     }
 
     if (!this.memory.job) {
       let jobGroupIndex = -1;
-      for (const subJobs of this.memory.jobs) {
+      for (const subJobs of CreepJob.ROLE_TO_JOB[this.memory.role]) {
         jobGroupIndex++;
 
         if (this.memory.jobGroupIndex >= 0 && jobGroupIndex !== this.memory.jobGroupIndex) {
@@ -117,7 +168,7 @@ export default class CreepJob extends CreepSpawn {
 
         if (oneOf.length > 0) {
           this.log(oneOf[0].name);
-          this.say("☀️");
+          this.status("☀️");
 
           this.memory.job = oneOf[0].name;
           this.memory.jobGroupIndex = jobGroupIndex;
@@ -148,7 +199,7 @@ export default class CreepJob extends CreepSpawn {
     let target;
 
     // When not available (by other creep)
-    if (this.memory.mySourceId && this.memory.attemptsHarvestSource >= ATTEMPTS_HARVEST_LIMIT) {
+    if (this.memory.mySourceId && this.memory.attemptsHarvestSource >= CreepJob.ATTEMPTS_HARVEST_LIMIT) {
       target = randOf(
         this.find(CreepFind.FIND_SOURCES_BY_DISTANCE).filter((source) => source.id !== this.memory.mySourceId),
       );
@@ -174,19 +225,19 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.harvest(target, resourceType);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-      !this.dryRun && this.say("🚙");
+      this.creep.moveTo(target, { visualizePathStyle: VPS });
+      !this.dryRun && this.status("🚙");
 
-      if (distance(this.creep.pos, target.pos) <= ATTEMPTS_HARVEST_DISTANCE) {
+      if (distance(this.creep.pos, target.pos) <= CreepJob.ATTEMPTS_HARVEST_DISTANCE) {
         this.memory.attemptsHarvestSource = (this.memory.attemptsHarvestSource ?? 0) + 1;
       } else {
         delete this.memory.attemptsHarvestSource;
       }
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-      this.log(this.memory.job, CreepJob.RES2SAY[result]);
-      !this.dryRun && this.say("😠");
+      this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
+      !this.dryRun && this.status("😠");
     } else if (result === OK) {
-      !this.dryRun && this.say("⚒️");
+      !this.dryRun && this.status("⚒️");
       delete this.memory.attemptsHarvestSource;
     }
 
@@ -213,13 +264,13 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.pickup(target);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-      !this.dryRun && this.say("🚙");
+      this.creep.moveTo(target, { visualizePathStyle: VPS });
+      !this.dryRun && this.status("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-      this.log(this.memory.job, CreepJob.RES2SAY[result]);
-      !this.dryRun && this.say("😠");
+      this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
+      !this.dryRun && this.status("😠");
     } else if (result === OK) {
-      !this.dryRun && this.say("⚒️");
+      !this.dryRun && this.status("⚒️");
     }
 
     return true;
@@ -259,13 +310,13 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-      !this.dryRun && this.say("🚙");
+      this.creep.moveTo(target, { visualizePathStyle: VPS });
+      !this.dryRun && this.status("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-      this.log(this.memory.job, CreepJob.RES2SAY[result]);
-      !this.dryRun && this.say("😠");
+      this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
+      !this.dryRun && this.status("😠");
     } else if (result === OK) {
-      !this.dryRun && this.say("⚒️");
+      !this.dryRun && this.status("⚒️");
     }
 
     return true;
@@ -281,7 +332,13 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
-    const target = this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE)?.[0];
+    const targets = sequence(
+      this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
+      [STRUCTURE_EXTENSION, STRUCTURE_ROAD],
+      ({ structureType }) => structureType,
+    );
+
+    const target = targets?.[0];
 
     // BREAK if resource not found
     if (!target) {
@@ -291,13 +348,13 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.build(target);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: { ...VPS, stroke: "tomato" } });
-      !this.dryRun && this.say("🚙");
+      this.creep.moveTo(target, { visualizePathStyle: VPS });
+      !this.dryRun && this.status("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
-      this.log(this.memory.job, CreepJob.RES2SAY[result]);
-      !this.dryRun && this.say("😠");
+      this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
+      !this.dryRun && this.status("😠");
     } else if (result === OK) {
-      !this.dryRun && this.say("⚒️");
+      !this.dryRun && this.status("⚒️");
     }
 
     return true;

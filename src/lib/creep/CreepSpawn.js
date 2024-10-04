@@ -34,9 +34,7 @@ export default class CreepSpawn extends CreepFind {
       return false;
     }
 
-    const body = Array.isArray(this.parameters.body)
-      ? this.parameters.body
-      : CalcCreepBody(spawn.room.energyCapacityAvailable, this.parameters.body);
+    const body = CalcCreepBody(spawn.room.energyCapacityAvailable, this.parameters.bodyRatios);
 
     if (body.length === 0) {
       throw new Error(`body.length: ${body.length}`);
@@ -46,9 +44,8 @@ export default class CreepSpawn extends CreepFind {
     const result = spawn.spawnCreep(body, this.parameters.name, {
       memory: {
         role: this.parameters.role,
+        // bodyRatios: this.parameters.bodyRatios, // ! TODO FEATURE
         job: "",
-        jobs: this.parameters.jobs,
-        body: this.parameters.body,
       },
     });
 

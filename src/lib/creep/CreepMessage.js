@@ -1,7 +1,12 @@
-import Props from "./Props";
+import { asc } from "../../../lib/sort.js";
+import Props from "./Props.js";
 
 export default class CreepMessage extends Props {
-  says = [];
+  static BODY_TO_EMOJI = {
+    [WORK]: "🙌",
+    [CARRY]: "🎒",
+    [MOVE]: "🦿",
+  };
 
   log(...msg) {
     const TTL = "";
@@ -14,8 +19,27 @@ export default class CreepMessage extends Props {
     I.push(
       [
         //
-        `❤️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`,
-        `⚡${((this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY)) * 100).toFixed(2)}%`,
+        // `❤️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`.padEnd(8, " "),
+        `⏱️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`.padEnd(8, " "),
+
+        `⚡${((this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY)) * 100).toFixed(2)}%`.padEnd(
+          8,
+          " ",
+        ),
+
+        [
+          this.creep.body
+            .map(({ type }) => type)
+            .filter((v, i, a) => a.indexOf(v) === i)
+            .map((name) => {
+              const count = this.creep.body.filter(({ type: _name }) => _name === name).length;
+
+              return `${CreepMessage.BODY_TO_EMOJI[name]}${`x${count}`}`;
+            })
+            .join(" "),
+
+          `💰${this.creep.body.reduce((pv, { type }) => pv + BODYPART_COST[type], 0)}`,
+        ].join(" = "),
       ].join(" | "),
     );
 
@@ -28,7 +52,9 @@ export default class CreepMessage extends Props {
     ]);
   }
 
-  say(msg) {
-    !this.says.includes(msg) && this.says.push(msg);
+  status(emoji) {
+    this.memory.statuses = (this.memory.statuses ?? []).filter(({ e }) => e !== emoji);
+    this.memory.statuses.push({ e: emoji, t: Game.time });
+    this.memory.statuses = this.memory.statuses.sort(({ t: a }, { t: b }) => asc(a, b));
   }
 }

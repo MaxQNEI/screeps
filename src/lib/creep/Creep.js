@@ -16,7 +16,11 @@ export default class Creep extends CreepRole {
     }
 
     if (!this.job()) {
-      this.says.length > 0 && this.creep.say(this.says.join(""));
+      if (this.memory?.statuses?.length > 0) {
+        this.memory.statuses = this.memory.statuses.filter(({ t }) => t + 2 > Game.time);
+        this.creep.say(this.memory.statuses.map(({ e }) => e).join(""));
+      }
+
       return;
     }
   }
