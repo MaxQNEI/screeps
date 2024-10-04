@@ -860,17 +860,40 @@
         ]);
       }
       {
-        for (const role in define_Config_default.Room.Creeps) {
-          if (!CCBR[role] || CCBR[role] < define_Config_default.Room.Creeps[role]) {
-            Memory.log.push([
-              //
-              // `<span style="color: tomato;">&lt;loop()&gt;</span>`,
-              `loop()`,
-              `Next spawn ${role} in ${room.name}`
-            ]);
-            new Creep().spawn({ room, ...CreepRole[role]() });
-            break;
+        let next;
+        let reason = "";
+        if (!next) {
+          const nextByTimeList = [];
+          for (const name in Game.creeps) {
+            const creep = Game.creeps[name];
+            if (creep.spawning) {
+              continue;
+            }
+            const left = creep.ticksToLive / 1500 * 100;
+            if (left < 10) {
+              nextByTimeList.push({ left, creep });
+            }
           }
+          const nextByTime = nextByTimeList.sort(({ left: a }, { left: b }) => asc(a, b))[0];
+          if (nextByTime) {
+            const creep = nextByTime.creep;
+            next = { room: creep.room, ...CreepRole[creep.memory.role]() };
+            reason = `Creep "${creep.name}" has ${creep.ticksToLive} ticks left`;
+          }
+        }
+        if (!next) {
+          for (const role in define_Config_default.Room.Creeps) {
+            if (!CCBR[role] || CCBR[role] < define_Config_default.Room.Creeps[role]) {
+              next = { room, ...CreepRole[role]() };
+              reason = `The count of creeps is less than needed.`;
+              break;
+            }
+          }
+        }
+        if (next) {
+          Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
+          reason && Memory.log.push(["", `Reason: ${reason}`], []);
+          new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
         }
       }
     }
