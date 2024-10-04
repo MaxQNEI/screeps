@@ -701,10 +701,10 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD,
+        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
       [

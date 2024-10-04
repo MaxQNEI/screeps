@@ -53,8 +53,10 @@ export default class CreepJob extends CreepSpawn {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
@@ -70,10 +72,12 @@ export default class CreepJob extends CreepSpawn {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
+
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
       ],
       [
@@ -87,8 +91,10 @@ export default class CreepJob extends CreepSpawn {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
       ],
