@@ -3,6 +3,19 @@
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
+  // <define:Config>
+  var define_Config_default = { Room: { Creeps: { RoleWorker: 3, RoleBuilder: 3, RoleManager: 3 } } };
+
+  // lib/rand.js
+  function rand(a, b) {
+    return Math.round(Math.random() * (b - a) + a);
+  }
+
+  // lib/rand-of.js
+  function randOf(array) {
+    return array[rand(0, array.length - 1)];
+  }
+
   // lib/sort.js
   function asc(a, b) {
     return a === b ? 0 : a > b ? 1 : -1;
@@ -26,58 +39,6 @@
       }),
       ...end
     ];
-  }
-
-  // lib/table.js
-  function table(rows = []) {
-    var _a5, _b;
-    const colsWidth = [];
-    for (const row of rows) {
-      for (let ci = 0; ci < row.length; ci++) {
-        colsWidth[ci] = Math.max(colsWidth[ci] || 0, `${(_a5 = row[ci]) != null ? _a5 : ""}`.length);
-      }
-    }
-    for (let ci = 0; ci < colsWidth.length; ci++) {
-      for (const row of rows) {
-        row[ci] = `${(_b = row[ci]) != null ? _b : ""}`.padEnd(colsWidth[ci], " ");
-      }
-    }
-    let totalLength = 0;
-    const out = [];
-    for (const row of rows) {
-      out.push(`| ${row.join(" | ")} |`);
-    }
-    totalLength = out[0].length;
-    console.log(
-      [
-        //
-        "".padEnd(totalLength, "_"),
-        ...out,
-        "".padEnd(totalLength, "\u203E")
-      ].join("\n")
-    );
-  }
-
-  // src/config.js
-  var Config = {
-    Room: {
-      Creeps: {
-        RoleWorker: 3,
-        RoleBuilder: 3,
-        RoleManager: 3
-      }
-    }
-  };
-  var config_default = Config;
-
-  // lib/rand.js
-  function rand(a, b) {
-    return Math.round(Math.random() * (b - a) + a);
-  }
-
-  // lib/rand-of.js
-  function randOf(array) {
-    return array[rand(0, array.length - 1)];
   }
 
   // src/lib/distance.js
@@ -126,9 +87,9 @@
       return this;
     }
     setCreep(creep) {
-      var _a5;
+      var _a;
       this.creep = creep;
-      this.memory = (_a5 = this.creep) == null ? void 0 : _a5.memory;
+      this.memory = (_a = this.creep) == null ? void 0 : _a.memory;
       return this;
     }
   };
@@ -136,14 +97,14 @@
   // src/lib/creep/CreepMessage.js
   var _CreepMessage = class _CreepMessage extends Props {
     log(...msg) {
-      var _a5;
+      var _a;
       const TTL = "";
       const I = [];
       I.push(
         [
           //
           // `❤️${((this.creep?.ticksToLive / 1500) * 100).toFixed(2)}%`.padEnd(8, " "),
-          `\u23F1\uFE0F${(((_a5 = this.creep) == null ? void 0 : _a5.ticksToLive) / 1500 * 100).toFixed(2)}%`.padEnd(8, " "),
+          `\u23F1\uFE0F${(((_a = this.creep) == null ? void 0 : _a.ticksToLive) / 1500 * 100).toFixed(2)}%`.padEnd(8, " "),
           `\u26A1${(this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY) * 100).toFixed(2)}%`.padEnd(
             8,
             " "
@@ -165,11 +126,11 @@
         ...I
       ]);
     }
-    status(emoji) {
-      var _a5;
-      this.memory.statuses = ((_a5 = this.memory.statuses) != null ? _a5 : []).filter(({ e }) => e !== emoji);
-      this.memory.statuses.push({ e: emoji, t: Game.time });
-      this.memory.statuses = this.memory.statuses.sort(({ t: a }, { t: b }) => asc(a, b));
+    status(emoji, stopShow = 3) {
+      var _a;
+      this.memory.statuses = ((_a = this.memory.statuses) != null ? _a : []).filter(({ emoji: emoji2 }) => emoji2 !== emoji2);
+      this.memory.statuses.push({ emoji, stopShow: Game.time + stopShow });
+      this.memory.statuses = this.memory.statuses.sort(({ stopShow: a }, { stopShow: b }) => asc(a, b));
     }
   };
   __publicField(_CreepMessage, "BODY_TO_EMOJI", {
@@ -182,8 +143,8 @@
   // src/lib/creep/CreepFind.js
   var _CreepFind = class _CreepFind extends CreepMessage {
     find(findType = _CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY, parameters = { cost: 0, desc: false, type: null }) {
-      var _a5, _b;
-      const _room = (_b = (_a5 = this.creep) == null ? void 0 : _a5.room) != null ? _b : this.parameters.room;
+      var _a, _b;
+      const _room = (_b = (_a = this.creep) == null ? void 0 : _a.room) != null ? _b : this.parameters.room;
       const _sort = parameters.desc ? desc : asc;
       if (findType === _CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE) {
         const constructionSites = _room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
@@ -372,14 +333,14 @@
   // src/lib/creep/CreepSpawn.js
   var CreepSpawn = class _CreepSpawn extends CreepFind {
     spawn(parameters = PropCreepParameters) {
-      var _a5, _b;
+      var _a, _b;
       this.parameters = parameters;
       this.parameters.name = this.parameters.name || this.name();
       if (!this.parameters.name) {
         return false;
       }
       this.setCreep(Game.creeps[this.parameters.name]);
-      if ((_a5 = this.creep) == null ? void 0 : _a5.spawning) {
+      if ((_a = this.creep) == null ? void 0 : _a.spawning) {
         return false;
       }
       if (this.creep) {
@@ -500,7 +461,7 @@
       }
     }
     harvest(resourceType = RESOURCE_ENERGY) {
-      var _a5;
+      var _a;
       if (!this.creep) {
         delete this.memory.attemptsHarvestSource;
         return false;
@@ -531,7 +492,7 @@
         this.creep.moveTo(target, { visualizePathStyle: VPS });
         !this.dryRun && this.status("\u{1F699}");
         if (distance(this.creep.pos, target.pos) <= _CreepJob.ATTEMPTS_HARVEST_DISTANCE) {
-          this.memory.attemptsHarvestSource = ((_a5 = this.memory.attemptsHarvestSource) != null ? _a5 : 0) + 1;
+          this.memory.attemptsHarvestSource = ((_a = this.memory.attemptsHarvestSource) != null ? _a : 0) + 1;
         } else {
           delete this.memory.attemptsHarvestSource;
         }
@@ -545,14 +506,14 @@
       return true;
     }
     pickup(resourceType = RESOURCE_ENERGY) {
-      var _a5;
+      var _a;
       if (!this.creep) {
         return false;
       }
       if (this.creep.store.getFreeCapacity(resourceType) === 0) {
         return false;
       }
-      const target = (_a5 = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a5[0];
+      const target = (_a = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a[0];
       if (!target) {
         return false;
       }
@@ -667,8 +628,8 @@
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
-        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
-        _CreepJob.BUILD
+        _CreepJob.BUILD,
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
       [
         //
@@ -679,10 +640,10 @@
     RoleBuilder: [
       [
         //
-        _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
       [
@@ -737,65 +698,170 @@
       this.setCreep(creep);
     }
     live() {
-      var _a5, _b;
+      var _a, _b;
       if (this.creep.spawning) {
         return;
       }
       if (!this.job()) {
-        if (((_b = (_a5 = this.memory) == null ? void 0 : _a5.statuses) == null ? void 0 : _b.length) > 0) {
-          this.memory.statuses = this.memory.statuses.filter(({ t }) => t + 2 > Game.time);
-          this.creep.say(this.memory.statuses.map(({ e }) => e).join(""));
+        if (Memory.StatusesShow && ((_b = (_a = this.memory) == null ? void 0 : _a.statuses) == null ? void 0 : _b.length) > 0) {
+          this.memory.statuses = this.memory.statuses.filter(({ stopShow }) => stopShow > Game.time);
+          this.creep.say(this.memory.statuses.map(({ emoji }) => emoji).join(""));
         }
         return;
       }
     }
   };
 
-  // src/index.js
-  var _a;
-  Memory.rooms = (_a = Memory.rooms) != null ? _a : {};
-  var _a2;
-  Memory.Roads = (_a2 = Memory.Roads) != null ? _a2 : {};
-  var _a3;
-  Memory.RoadsShow = (_a3 = Memory.RoadsShow) != null ? _a3 : false;
-  var _a4;
-  Memory.CreepsShow = (_a4 = Memory.CreepsShow) != null ? _a4 : false;
-  function loop() {
-    var _a5, _b, _c;
-    Memory.log = [];
-    {
+  // src/lib/process/Live.js
+  var Live = class {
+    run() {
       for (const name in Game.creeps) {
-        delete Game.creeps[name].memory.jobs;
-        delete Game.creeps[name].memory.body;
+        new Creep(Game.creeps[name]).live();
       }
     }
-    for (const name in Game.rooms) {
-      const room = Game.rooms[name];
-      const ccbr = {};
-      for (const role in config_default.Room.Creeps) {
-        ccbr[role] = 0;
+  };
+
+  // lib/table.js
+  function table2(rows = []) {
+    var _a, _b;
+    const colsWidth = [];
+    for (const row of rows) {
+      for (let ci = 0; ci < row.length; ci++) {
+        colsWidth[ci] = Math.max(colsWidth[ci] || 0, `${(_a = row[ci]) != null ? _a : ""}`.length);
       }
-      for (const name2 in Game.creeps) {
-        const creep = Game.creeps[name2];
+    }
+    for (let ci = 0; ci < colsWidth.length; ci++) {
+      for (const row of rows) {
+        row[ci] = `${(_b = row[ci]) != null ? _b : ""}`.padEnd(colsWidth[ci], " ");
+      }
+    }
+    let totalLength = 0;
+    const out = [];
+    for (const row of rows) {
+      out.push(`| ${row.join(" | ")} |`);
+    }
+    totalLength = out[0].length;
+    console.log(
+      [
+        //
+        "".padEnd(totalLength, "_"),
+        ...out,
+        "".padEnd(totalLength, "\u203E")
+      ].join("\n")
+    );
+  }
+
+  // src/lib/process/MemoryLog.js
+  var Time = null;
+  function MemoryLog() {
+    var _a;
+    Memory.MemoryLogShow = (_a = Memory.MemoryLogShow) != null ? _a : true;
+    if (Time === null) {
+      Time = Game.time;
+      Memory.log = [];
+    } else {
+      Time = null;
+      if (Memory.MemoryLogShow && Memory.log.length > 0) {
+        const _table = [["Memory.log[]"]];
+        for (const msg of Memory.log) {
+          _table.push([...msg]);
+        }
+        table2(_table);
+      }
+      Memory.log = [];
+    }
+  }
+
+  // src/lib/process/Observe.js
+  var Observe = class {
+    run() {
+      var _a, _b, _c, _d;
+      Memory.NotiStack = (_a = Memory.NotiStack) != null ? _a : {};
+      const Notifications = {};
+      for (const name in Game.rooms) {
+        const room = Game.rooms[name];
+        if (!Memory.NotiStack[name]) {
+          const rcp2 = this.roomControllerProgress(room);
+          const data = Memory.NotiStack[name] = {
+            level: room.controller.level,
+            progress: rcp2.p_10
+          };
+          (Notifications.ObservationStart = (_b = Notifications.ObservationStart) != null ? _b : []).push(
+            [
+              `Room[${room.name}] controller level observation started, current: ${data.level}`,
+              `Room[${room.name}] controller progress observation started, current: ${rcp2.current} of ${rcp2.total} (${rcp2.percent}%)`
+            ].join("\n")
+          );
+        }
+        const MNS = Memory.NotiStack[name];
+        if (MNS.level !== room.controller.level) {
+          MNS.level = room.controller.level;
+          const notification = {
+            type: "room-controller-level",
+            level: room.controller.level,
+            text: `Room[${room.name}].Controller level is changed to ${room.controller.level} (${room.controller.level - MNS.level})`
+          };
+          (Notifications.RoomControllerLevel = (_c = Notifications.RoomControllerLevel) != null ? _c : []).push(notification.text);
+        }
+        const rcp = this.roomControllerProgress(room);
+        if (MNS.progress !== rcp.p_10) {
+          MNS.progress = rcp.p_10;
+          const notification = {
+            type: "room-controller-progress",
+            progress: room.controller.progress,
+            text: `Room[${room.name}].Controller progress is changed to ${rcp.current} of ${rcp.total} (${rcp.percent}%)`
+          };
+          (Notifications.RoomControllerProgress = (_d = Notifications.RoomControllerProgress) != null ? _d : []).push(notification.text);
+        }
+      }
+      for (const key in Notifications) {
+        Game.notify(Notifications[key].join("\n\n"));
+      }
+    }
+    roomControllerProgress(room) {
+      const controller = room.controller;
+      const current = controller.progress;
+      const total = controller.progressTotal;
+      const percent = parseInt(current / total * 100);
+      const p_10 = Math.floor(percent / 10);
+      return { current, total, percent, p_10 };
+    }
+  };
+
+  // src/lib/room/Room.js
+  var Room2 = class {
+    run() {
+      this.every();
+    }
+    every() {
+      for (const name in Game.rooms) {
+        const room = Game.rooms[name];
+        this.room(room);
+      }
+    }
+    room(room) {
+      var _a;
+      const CCBR = {};
+      for (const role in define_Config_default.Room.Creeps) {
+        CCBR[role] = 0;
+      }
+      for (const name in Game.creeps) {
+        const creep = Game.creeps[name];
         if (creep.room === room) {
-          if (creep.memory.role === "Worker") {
-            creep.memory.role = "RoleWorker";
-            creep.memory.jobs = CreepRole.RoleWorker().jobs;
-          }
-          ccbr[creep.memory.role] = ((_a5 = ccbr[creep.memory.role]) != null ? _a5 : 0) + 1;
+          CCBR[creep.memory.role] = ((_a = CCBR[creep.memory.role]) != null ? _a : 0) + 1;
         }
       }
       if (Memory.CreepsShow) {
         table([
           //
-          ["", ...Object.keys(ccbr)],
-          ["Current", ...Object.values(ccbr)],
-          ["Need", ...Object.values(config_default.Room.Creeps)]
+          ["", ...Object.keys(CCBR)],
+          ["Current", ...Object.values(CCBR)],
+          ["Need", ...Object.values(define_Config_default.Room.Creeps)]
         ]);
       }
       {
-        for (const role in config_default.Room.Creeps) {
-          if (!ccbr[role] || ccbr[role] < config_default.Room.Creeps[role]) {
+        for (const role in define_Config_default.Room.Creeps) {
+          if (!CCBR[role] || CCBR[role] < define_Config_default.Room.Creeps[role]) {
             Memory.log.push([
               //
               // `<span style="color: tomato;">&lt;loop()&gt;</span>`,
@@ -808,70 +874,95 @@
         }
       }
     }
-    {
+  };
+
+  // src/lib/structures/ProceduralRoads.js
+  var _ProceduralRoads = class _ProceduralRoads {
+    run() {
+      var _a, _b;
+      Memory.RoadsShow = (_a = Memory.RoadsShow) != null ? _a : false;
+      Memory.Roads = (_b = Memory.Roads) != null ? _b : {};
+      this.calculate();
+      this.add();
+      this.log();
+    }
+    calculate() {
       for (const coords in Memory.Roads) {
-        if (typeof Memory.Roads[coords] === "number") {
-          delete Memory.Roads[coords];
-          continue;
-        }
-        if (Memory.Roads[coords].rate >= 100) {
+        if (Memory.Roads[coords].rate >= _ProceduralRoads.RATE_BUILD) {
           const [x, y] = coords.split("x").map((v) => parseInt(v));
-          const room = Game.rooms[Memory.Roads[coords].room];
-          const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
-          if (result === ERR_INVALID_TARGET) {
-            delete Memory.Roads[coords];
-          } else {
-          }
+          this.build(x, y);
           continue;
         }
-        Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - 0.01);
+        Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - _ProceduralRoads.RATE_DOWN);
         if (Memory.Roads[coords].rate === 0) {
           delete Memory.Roads[coords];
         }
       }
-      if (Memory.RoadsShow) {
-        const _entries = Object.entries(Memory.Roads);
-        table([
-          ..._entries.sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b)).map(([coords, { rate }]) => [coords, rate.toFixed(3)]).slice(0, 5),
-          ["", ""],
-          ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
-          ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
-          ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
-          ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
-          ["Total", _entries.length]
-        ]);
-      }
     }
-    {
+    add() {
+      var _a, _b;
       for (const name in Game.creeps) {
-        {
-          const creep = Game.creeps[name];
-          const room = creep.room;
-          const structures = room.lookAt(creep.pos).filter(({ type }) => type === "structure").map(({ structure: { structureType } }) => structureType);
-          if (structures.length === 0) {
-            const { x, y } = creep.pos;
-            const coords = `${x}x${y}`;
-            Memory.Roads[coords] = {
-              //
-              room: room.name,
-              rate: Math.min(100, ((_c = (_b = Memory.Roads[coords]) == null ? void 0 : _b.rate) != null ? _c : 0) + 1),
-              update: Date.now()
-            };
-          }
+        const creep = Game.creeps[name];
+        if (creep.spawning) {
+          continue;
         }
-        new Creep(Game.creeps[name]).live();
+        const room = creep.room;
+        const { x, y } = creep.pos;
+        const structures = room.lookAt({ x, y }).filter(({ type }) => type === "structure").map(({ structure: { structureType } }) => structureType);
+        if (structures.length > 0) {
+          continue;
+        }
+        const key = `${x}x${y}`;
+        Memory.Roads[key] = {
+          // Room name
+          room: room.name,
+          // Rate to build
+          rate: Math.min(
+            _ProceduralRoads.RATE_BUILD,
+            ((_b = (_a = Memory.Roads[key]) == null ? void 0 : _a.rate) != null ? _b : _ProceduralRoads.RATE_DOWN) + _ProceduralRoads.RATE_UP
+          ),
+          // Last rate update
+          update: Date.now()
+        };
       }
     }
-    {
-      if (Memory.log.length > 0) {
-        let time = `${(Game.time / 2 / 60 / 60 / 24).toFixed(4)}d`;
-        const _table = [[`${Game.time} (${time})`]];
-        for (const msg of Memory.log) {
-          _table.push([...msg]);
-        }
-        table(_table);
+    log() {
+      if (!Memory.RoadsShow) {
+        return;
+      }
+      const _entries = Object.entries(Memory.Roads);
+      table2([
+        ..._entries.sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b)).map(([coords, { rate }]) => [coords, rate.toFixed(3)]).slice(0, 5),
+        ["", ""],
+        ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
+        ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
+        ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
+        ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
+        ["Total", _entries.length]
+      ]);
+    }
+    build(x, y) {
+      const key = `${x}x${y}`;
+      const room = Game.rooms[Memory.Roads[key].room];
+      const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
+      if (result === ERR_INVALID_TARGET) {
+        delete Memory.Roads[key];
       }
     }
+  };
+  __publicField(_ProceduralRoads, "RATE_UP", 1);
+  __publicField(_ProceduralRoads, "RATE_DOWN", 5e-3);
+  __publicField(_ProceduralRoads, "RATE_BUILD", 100);
+  var ProceduralRoads = _ProceduralRoads;
+
+  // src/index.js
+  function loop() {
+    MemoryLog();
+    new Observe().run();
+    new Room2().run();
+    new ProceduralRoads().run();
+    new Live().run();
+    MemoryLog();
   }
   eval(`module.exports.loop = ${loop.name};`);
 })();

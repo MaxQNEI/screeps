@@ -52,9 +52,13 @@ export default class CreepMessage extends Props {
     ]);
   }
 
-  status(emoji) {
-    this.memory.statuses = (this.memory.statuses ?? []).filter(({ e }) => e !== emoji);
-    this.memory.statuses.push({ e: emoji, t: Game.time });
-    this.memory.statuses = this.memory.statuses.sort(({ t: a }, { t: b }) => asc(a, b));
+  status(emoji, stopShow = 3) {
+    // if (["🚙"].includes(emoji)) {
+    //   return;
+    // }
+
+    this.memory.statuses = (this.memory.statuses ?? []).filter(({ emoji }) => emoji !== emoji);
+    this.memory.statuses.push({ emoji, stopShow: Game.time + stopShow });
+    this.memory.statuses = this.memory.statuses.sort(({ stopShow: a }, { stopShow: b }) => asc(a, b));
   }
 }
