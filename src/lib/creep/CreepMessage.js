@@ -59,7 +59,7 @@ export default class CreepMessage extends Props {
 
         const out = [
           //
-          `[${this.creep.room.name}] ${this.creep.name || this.parameters.name}${TTL}`,
+          `[${this.creep.room.name}] [${this.memory.role.replace(/^Role/i, "")}] ${this.creep.name || this.parameters.name}${TTL}`,
           m,
           ...I,
           // statuses,

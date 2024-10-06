@@ -98,9 +98,7 @@ Config.Room.Roads.RateUpByCreep = 1;
 Config.Room.Roads.RateDownByTick = 0.005;
 ```
 
-```JavaScript
-Memory.RoadsShow = false;
-```
+<s>Memory.RoadsShow = false;</s>
 
 > **USES MEMORY**
 

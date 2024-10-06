@@ -145,6 +145,10 @@ export default class CreepJob extends CreepSpawn {
       this.log(`MEMORY RESET JOB...`);
     }
 
+    if (!this.memory.role) {
+      this.memory.role = "RoleWorker";
+    }
+
     const _do = (job) => {
       switch (job) {
         case CreepJob.HARVEST_ENERGY:

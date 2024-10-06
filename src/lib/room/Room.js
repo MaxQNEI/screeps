@@ -149,7 +149,9 @@ function roadsAroundSources(room) {
     return;
   }
 
-  Memory.log.push(["roadsAroundSources()"]);
+  if (Memory.MemoryLogShow) {
+    Memory.log.push(["roadsAroundSources()"]);
+  }
 
   const sources = room.find(FIND_SOURCES);
 

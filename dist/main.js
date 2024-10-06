@@ -29,6 +29,22 @@
   };
   var config_default = Config2;
 
+  // src/lib/process/Garbage.js
+  function Garbage() {
+    if (Game.time % CREEP_LIFE_TIME === 0) {
+      let remove = 0;
+      for (const name in Memory.creeps) {
+        if (Game.creeps[name] == null) {
+          delete Memory.creeps[name];
+          remove++;
+        }
+      }
+      if (remove > 0) {
+        Game.notify(`Removed Memory.creeps: ${remove}`);
+      }
+    }
+  }
+
   // lib/rand.js
   function rand(a, b) {
     return Math.round(Math.random() * (b - a) + a);
@@ -175,7 +191,7 @@
           }
           const out = [
             //
-            `[${this.creep.room.name}] ${this.creep.name || this.parameters.name}${TTL}`,
+            `[${this.creep.room.name}] [${this.memory.role.replace(/^Role/i, "")}] ${this.creep.name || this.parameters.name}${TTL}`,
             m,
             ...I
             // statuses,
@@ -450,6 +466,11 @@
       Memory.CreepSpawnLast[this.parameters.room.name] = (_c = Memory.CreepSpawnLast[this.parameters.room.name]) != null ? _c : Game.time;
       const isTooFewCreeps = ForceSpawnIfCreepsLessThan && CurrentCreepCount < ForceSpawnIfCreepsLessThan;
       const isBeenTooLongBetweenSpawns = Game.time - Memory.CreepSpawnLast[this.parameters.room.name] >= MaximumSpawningTicksBetweenSpawns;
+      if (isTooFewCreeps) {
+        Memory.log.push(["CreepSpawn.spawn()", "isTooFewCreeps!"]);
+      } else if (isBeenTooLongBetweenSpawns) {
+        Memory.log.push(["CreepSpawn.spawn()", "isBeenTooLongBetweenSpawns!"]);
+      }
       const energy = isTooFewCreeps || isBeenTooLongBetweenSpawns ? Math.max(300, this.parameters.room.energyAvailable) : spawn.room.energyCapacityAvailable;
       const body = CalculateCreepBody(energy, this.parameters.bodyRatios);
       if (body.length === 0) {
@@ -481,7 +502,7 @@
     name() {
       let name;
       do {
-        name = UpperCaseFirst(`${randName()} ${this.parameters.role.replace(/^Role/, "").replace(/[aeiouy]/gi, "")}`);
+        name = UpperCaseFirst(randName());
       } while (Game.creeps[name]);
       return name;
     }
@@ -511,6 +532,9 @@
         delete this.memory.job;
         delete this.memory.jobGroupIndex;
         this.log(`MEMORY RESET JOB...`);
+      }
+      if (!this.memory.role) {
+        this.memory.role = "RoleWorker";
       }
       const _do = (job) => {
         switch (job) {
@@ -1134,7 +1158,9 @@
     if (Game.time % 60 !== 0) {
       return;
     }
-    Memory.log.push(["roadsAroundSources()"]);
+    if (Memory.MemoryLogShow) {
+      Memory.log.push(["roadsAroundSources()"]);
+    }
     const sources = room.find(FIND_SOURCES);
     for (const source of sources) {
       for (const [x, y] of ROADS_AROUND_SOURCES_COORDS) {
@@ -1167,24 +1193,30 @@
       }
     }
   } = define_Config_default;
+  var FLOAT_FIX = RateDownByTick.toString().replace(/^\d+\./, "").length;
   function ProceduralRoads() {
-    var _a2, _b;
-    Memory.RoadsShow = (_a2 = Memory.RoadsShow) != null ? _a2 : false;
-    Memory.Roads = (_b = Memory.Roads) != null ? _b : {};
+    var _a2;
+    Memory.Roads = (_a2 = Memory.Roads) != null ? _a2 : {
+      // [Room.name]: {
+      //   [coords]: 55.99
+      // },
+    };
     calculate();
     add();
-    log();
   }
   function calculate() {
-    for (const coords in Memory.Roads) {
-      if (Memory.Roads[coords].rate >= RateToBuild) {
-        const [x, y] = coords.split("x").map((v) => parseInt(v));
-        build(x, y);
-        continue;
-      }
-      Memory.Roads[coords].rate = Math.max(0, Memory.Roads[coords].rate - RateDownByTick);
-      if (Memory.Roads[coords].rate === 0) {
-        delete Memory.Roads[coords];
+    for (const roomName in Memory.Roads) {
+      for (const keyCoords in Memory.Roads[roomName]) {
+        if (Memory.Roads[roomName][keyCoords] >= RateToBuild) {
+          build(Game.rooms[roomName], keyCoords);
+          continue;
+        }
+        Memory.Roads[roomName][keyCoords] = parseFloat(
+          (Memory.Roads[roomName][keyCoords] - RateDownByTick).toFixed(FLOAT_FIX)
+        );
+        if (Memory.Roads[roomName][keyCoords] <= 0) {
+          delete Memory.Roads[roomName][keyCoords];
+        }
       }
     }
   }
@@ -1201,42 +1233,22 @@
       if (structures.length > 0) {
         continue;
       }
-      const key = `${x}x${y}`;
-      Memory.Roads[key] = {
-        // Room name
-        room: room.name,
-        // Rate to build
-        rate: Math.min(RateToBuild, ((_b = (_a2 = Memory.Roads[key]) == null ? void 0 : _a2.rate) != null ? _b : RateDownByTick) + RateUpByCreep),
-        // Last rate update
-        update: Date.now()
-      };
+      const keyCoords = `${x}x${y}`;
+      Memory.Roads[room.name] = (_a2 = Memory.Roads[room.name]) != null ? _a2 : {};
+      const rate = Math.min(RateToBuild, ((_b = Memory.Roads[room.name][keyCoords]) != null ? _b : RateDownByTick) + RateUpByCreep);
+      Memory.Roads[room.name][keyCoords] = rate;
     }
   }
-  function log() {
-    if (!Memory.RoadsShow) {
-      return;
-    }
-    const _entries = Object.entries(Memory.Roads);
-    table2([
-      ..._entries.sort(([_1, { rate: a }], [_2, { rate: b }]) => desc(a, b)).map(([coords, { rate }]) => [coords, rate.toFixed(3)]).slice(0, 5),
-      ["", ""],
-      ["0-25%", _entries.filter(([coords, { rate }]) => rate >= 0 && rate < 25).length],
-      ["25-50%", _entries.filter(([coords, { rate }]) => rate >= 25 && rate < 50).length],
-      ["50-75%+", _entries.filter(([coords, { rate }]) => rate >= 50 && rate < 75).length],
-      ["75-100%+", _entries.filter(([coords, { rate }]) => rate >= 75).length],
-      ["Total", _entries.length]
-    ]);
-  }
-  function build(x, y) {
-    const key = `${x}x${y}`;
-    const room = Game.rooms[Memory.Roads[key].room];
+  function build(room, keyCoords) {
+    const [x, y] = keyCoords.split("x");
     const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
     if (result === ERR_INVALID_TARGET) {
-      delete Memory.Roads[key];
+      delete Memory.Roads[keyCoords];
     }
   }
 
   // src/index.js
+  Garbage();
   function loop() {
     MemoryLog();
     Observe();

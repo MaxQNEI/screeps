@@ -54,6 +54,12 @@ export default class CreepSpawn extends CreepFind {
     const isBeenTooLongBetweenSpawns =
       Game.time - Memory.CreepSpawnLast[this.parameters.room.name] >= MaximumSpawningTicksBetweenSpawns;
 
+    if (isTooFewCreeps) {
+      Memory.log.push(["CreepSpawn.spawn()", "isTooFewCreeps!"]);
+    } else if (isBeenTooLongBetweenSpawns) {
+      Memory.log.push(["CreepSpawn.spawn()", "isBeenTooLongBetweenSpawns!"]);
+    }
+
     const energy =
       isTooFewCreeps || isBeenTooLongBetweenSpawns
         ? Math.max(300, this.parameters.room.energyAvailable)
@@ -105,7 +111,7 @@ export default class CreepSpawn extends CreepFind {
     let name;
 
     do {
-      name = UpperCaseFirst(`${randName()} ${this.parameters.role.replace(/^Role/, "").replace(/[aeiouy]/gi, "")}`);
+      name = UpperCaseFirst(randName());
     } while (Game.creeps[name]);
 
     return name;
