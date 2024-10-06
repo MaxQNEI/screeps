@@ -12,11 +12,6 @@ export default class Creep extends CreepRole {
     }
 
     if (!this.job()) {
-      if (Memory.StatusesShow && this.memory?.statuses?.length > 0) {
-        this.memory.statuses = this.memory.statuses.filter(({ stopShow }) => stopShow > Game.time);
-        this.creep.say(this.memory.statuses.map(({ emoji }) => emoji).join(""));
-      }
-
       return;
     }
   }

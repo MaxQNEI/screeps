@@ -5,6 +5,10 @@ let Time = null;
 export default function MemoryLog() {
   Memory.MemoryLogShow = Memory.MemoryLogShow ?? true;
 
+  if (!Memory.MemoryLogShow) {
+    return;
+  }
+
   // First start
   if (Time === null) {
     // First clear

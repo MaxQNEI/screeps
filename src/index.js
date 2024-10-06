@@ -1,3 +1,5 @@
+import "./config.js";
+
 import Live from "./lib/process/Live.js";
 import MemoryLog from "./lib/process/MemoryLog.js";
 import Observe from "./lib/process/Observe.js";

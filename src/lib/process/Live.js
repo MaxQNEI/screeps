@@ -5,4 +5,6 @@ export default function Live() {
     // ... Live ...
     new Creep(Game.creeps[name]).live();
   }
+
+  Memory.ResetJob = false;
 }

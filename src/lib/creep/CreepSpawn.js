@@ -4,6 +4,12 @@ import CalculateCreepBody from "./CalculateCreepBody";
 import CreepFind from "./CreepFind";
 import { PropCreepParameters } from "./Props";
 
+const {
+  Room: {
+    Creeps: { ForceSpawnIfCreepsLessThan, MaximumSpawningTicksBetweenSpawns },
+  },
+} = Config;
+
 export default class CreepSpawn extends CreepFind {
   spawn(parameters = PropCreepParameters) {
     this.parameters = parameters;
@@ -34,7 +40,26 @@ export default class CreepSpawn extends CreepFind {
       return false;
     }
 
-    const body = CalculateCreepBody(spawn.room.energyCapacityAvailable, this.parameters.bodyRatios);
+    let CurrentCreepCount = 0;
+    for (const name in Game.creeps) {
+      if (Game.creeps[name].room === this.parameters.room) {
+        CurrentCreepCount++;
+      }
+    }
+
+    Memory.CreepSpawnLast = Memory.CreepSpawnLast ?? {};
+    Memory.CreepSpawnLast[this.parameters.room.name] = Memory.CreepSpawnLast[this.parameters.room.name] ?? Game.time;
+
+    const isTooFewCreeps = ForceSpawnIfCreepsLessThan && CurrentCreepCount < ForceSpawnIfCreepsLessThan;
+    const isBeenTooLongBetweenSpawns =
+      Game.time - Memory.CreepSpawnLast[this.parameters.room.name] >= MaximumSpawningTicksBetweenSpawns;
+
+    const energy =
+      isTooFewCreeps && isBeenTooLongBetweenSpawns
+        ? Math.max(300, this.parameters.room.energyAvailable)
+        : spawn.room.energyCapacityAvailable;
+
+    const body = CalculateCreepBody(energy, this.parameters.bodyRatios);
 
     if (body.length === 0) {
       throw new Error(`body.length: ${body.length}`);
@@ -51,7 +76,13 @@ export default class CreepSpawn extends CreepFind {
 
     if (result === ERR_NOT_ENOUGH_ENERGY) {
       return false;
+    } else if (result !== OK) {
+      console.log("SPAWN RESULT IS", result);
+      return false;
     }
+
+    // Save last creep spawn time
+    Memory.CreepSpawnLast[this.parameters.room.name] = Game.time;
 
     // assign
     this.setCreep(Game.creeps[this.parameters.name]);

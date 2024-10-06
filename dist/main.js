@@ -4,7 +4,30 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { AutoRespawnByTicksRemainingPercent: null, CountByRole: { RoleWorker: 3, RoleBuilder: 3, RoleManager: 3 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 5e-3 } } };
+  var define_Config_default = { Room: { Creeps: { MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 2, RoleBuilder: 2, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 1e-3 } } };
+
+  // src/config.js
+  var Config2 = {
+    Room: {
+      Creeps: {
+        ForceSpawnIfCreepsLessThan: 3,
+        MaximumSpawningTicksBetweenSpawns: 1500,
+        AutoRespawnByTicksRemainingPercent: 0.1,
+        CountByRole: {
+          RoleWorker: 2,
+          RoleBuilder: 2,
+          RoleManager: 2,
+          RoleTower: 2
+        }
+      },
+      Roads: {
+        RateToBuild: 100,
+        RateUpByCreep: 1,
+        RateDownByTick: 1e-3
+      }
+    }
+  };
+  var config_default = Config2;
 
   // lib/rand.js
   function rand(a, b) {
@@ -45,6 +68,25 @@
   function distance(point1, point2) {
     return Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2);
   }
+
+  // lib/Array.prototype.flat.js
+  var _a;
+  Array.prototype.flat = (_a = Array.prototype.flat) != null ? _a : function flat(depth = Infinity) {
+    const flat2 = [];
+    (function recursion(array, d = 0) {
+      if (d >= depth) {
+        return;
+      }
+      for (const item of array) {
+        if (Array.isArray(item)) {
+          recursion(item, d + 1);
+        } else {
+          flat2.push(item);
+        }
+      }
+    })(this);
+    return flat2;
+  };
 
   // src/lib/creep/Props.js
   var PropCreepParameters = {
@@ -87,9 +129,9 @@
       return this;
     }
     setCreep(creep) {
-      var _a;
+      var _a2;
       this.creep = creep;
-      this.memory = (_a = this.creep) == null ? void 0 : _a.memory;
+      this.memory = (_a2 = this.creep) == null ? void 0 : _a2.memory;
       return this;
     }
   };
@@ -97,13 +139,16 @@
   // src/lib/creep/CreepMessage.js
   var _CreepMessage = class _CreepMessage extends Props {
     log(...msg) {
-      var _a;
+      var _a2, _b, _c;
+      if (!Memory.MemoryLogShow) {
+        return;
+      }
       const TTL = "";
       const I = [];
       I.push(
         [
           //
-          `\u23F1\uFE0F${(((_a = this.creep) == null ? void 0 : _a.ticksToLive) / CREEP_LIFE_TIME * 100).toFixed(2)}%`.padEnd(8, " "),
+          `\u23F1\uFE0F${(((_a2 = this.creep) == null ? void 0 : _a2.ticksToLive) / CREEP_LIFE_TIME * 100).toFixed(2)}%`.padEnd(8, " "),
           `\u26A1${(this.creep.store.getUsedCapacity(RESOURCE_ENERGY) / this.creep.store.getCapacity(RESOURCE_ENERGY) * 100).toFixed(2)}%`.padEnd(
             8,
             " "
@@ -117,17 +162,35 @@
           ].join(" = ")
         ].join(" | ")
       );
-      Memory.log.push([
-        //
-        // `<span style="color: yellowgreen; font-style: italic;">${this.creep?.name || this.parameters.name}</span>${TTL}`,
-        `[${this.creep.room.name}] ${this.creep.name || this.parameters.name}${TTL}`,
-        ...msg,
-        ...I
-      ]);
+      let first = false;
+      for (const m of msg) {
+        if (!first) {
+          let statuses = null;
+          if (((_c = (_b = this.memory) == null ? void 0 : _b.statuses) == null ? void 0 : _c.length) > 0) {
+            this.memory.statuses = this.memory.statuses.filter(({ stopShow }) => stopShow > Game.time);
+            statuses = this.memory.statuses.map(({ emoji }) => emoji).join("");
+          }
+          if (Memory.StatusesShow && Game.time % 2 === 0) {
+            this.creep.say(statuses);
+          }
+          const out = [
+            //
+            `[${this.creep.room.name}] ${this.creep.name || this.parameters.name}${TTL}`,
+            m,
+            ...I
+            // statuses,
+          ];
+          Memory.log.push(out);
+          first = true;
+        } else {
+          Memory.log.push(["", m]);
+        }
+        first = true;
+      }
     }
-    status(emoji, stopShow = 3) {
-      var _a;
-      this.memory.statuses = ((_a = this.memory.statuses) != null ? _a : []).filter(({ emoji: emoji2 }) => emoji2 !== emoji2);
+    status(emoji, stopShow = 6) {
+      var _a2;
+      this.memory.statuses = ((_a2 = this.memory.statuses) != null ? _a2 : []).filter(({ emoji: emoji2 }) => emoji2 !== emoji2);
       this.memory.statuses.push({ emoji, stopShow: Game.time + stopShow });
       this.memory.statuses = this.memory.statuses.sort(({ stopShow: a }, { stopShow: b }) => asc2(a, b));
     }
@@ -142,15 +205,27 @@
   // src/lib/creep/CreepFind.js
   var _CreepFind = class _CreepFind extends CreepMessage {
     find(findType = _CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY, parameters = { cost: 0, desc: false, type: null }) {
-      var _a, _b;
-      const _room = (_b = (_a = this.creep) == null ? void 0 : _a.room) != null ? _b : this.parameters.room;
+      var _a2, _b, _c;
+      const _room = (_b = (_a2 = this.creep) == null ? void 0 : _a2.room) != null ? _b : this.parameters.room;
       const _sort = parameters.desc ? desc : asc2;
       if (findType === _CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE) {
-        const constructionSites = _room.find(FIND_CONSTRUCTION_SITES).map((constructionSite) => ({
+        let constructionSites = _room.find(FIND_MY_CONSTRUCTION_SITES).map((constructionSite) => ({
           origin: constructionSite,
-          distance: distance(this.creep.pos, constructionSite.pos)
-        })).sort(({ distance: a }, { distance: b }) => _sort(a, b)).map(({ origin }) => origin);
-        return constructionSites;
+          distance: distance(this.creep.pos, constructionSite.pos),
+          progressTotal: constructionSite.progressTotal
+        })).sort(({ distance: a }, { distance: b }) => _sort(a, b));
+        let counstructionSitesByStructureType = {};
+        for (const constructionSite of constructionSites) {
+          counstructionSitesByStructureType[constructionSite.origin.structureType] = (_c = counstructionSitesByStructureType[constructionSite.origin.structureType]) != null ? _c : [];
+          counstructionSitesByStructureType[constructionSite.origin.structureType].push(constructionSite);
+        }
+        for (const structureType in counstructionSitesByStructureType) {
+          counstructionSitesByStructureType[structureType] = counstructionSitesByStructureType[structureType].sort(
+            ({ progressTotal: a }, { progressTotal: b }) => asc2(a, b)
+          );
+        }
+        const sortedByProgressTotal = Object.values(counstructionSitesByStructureType).flat(Infinity);
+        return sortedByProgressTotal.map(({ origin }) => origin);
       }
       if (findType === _CreepFind.FIND_NEAR_DROPPED_RESOURCES) {
         const sources = _room.find(FIND_DROPPED_RESOURCES).map((source) => ({
@@ -180,33 +255,43 @@
       }
       if (findType === _CreepFind.FIND_SPAWN_TO_SPAWN_CREEP_BY_COST) {
         for (const nameSpawn in Game.spawns) {
-          const spawn2 = Game.spawns[nameSpawn];
-          if (spawn2.room === _room && spawn2.store[RESOURCE_ENERGY] >= parameters.cost) {
-            return spawn2;
+          const spawn = Game.spawns[nameSpawn];
+          if (spawn.room === _room && spawn.store[RESOURCE_ENERGY] >= parameters.cost) {
+            return spawn;
           }
         }
         return false;
       }
       if (findType === _CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY) {
-        const spawns = _room.find(FIND_MY_SPAWNS).map((spawn2) => ({
-          origin: spawn2,
-          free: spawn2.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-          distance: distance(this.creep.pos, spawn2.pos)
+        const spawns = _room.find(FIND_MY_SPAWNS).map((spawn) => ({
+          origin: spawn,
+          free: spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+          distance: distance(this.creep.pos, spawn.pos)
         })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => _sort(a, b)).map(({ origin }) => origin);
         return spawns;
       }
       if (findType === _CreepFind.FIND_SPAWNS_ORDER_BY_ENERGY) {
         const spawns = [];
         for (const nameSpawn in Game.spawns) {
-          const spawn2 = Game.spawns[nameSpawn];
-          if (spawn2.room === _room) {
+          const spawn = Game.spawns[nameSpawn];
+          if (spawn.room === _room) {
             spawns.push({
-              origin: spawn2,
-              energy: spawn2.store.energy
+              origin: spawn,
+              energy: spawn.store.energy
             });
           }
         }
         return spawns.sort(({ energy: a }, { energy: b }) => _sort(a, b)).map(({ origin }) => origin);
+      }
+      if (findType === _CreepFind.FIND_TOWER_WITH_FREE_CAPACITY) {
+        const towers = _room.find(FIND_MY_STRUCTURES).filter(
+          ({ structureType, store }) => structureType === STRUCTURE_TOWER && store.getFreeCapacity(RESOURCE_ENERGY) > 0
+        ).map((tower) => ({
+          origin: tower,
+          free: tower.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+          distance: distance(this.creep.pos, tower.pos)
+        })).filter(({ free }) => free > 0).sort(({ free: a }, { free: b }) => _sort(a, b)).map(({ origin }) => origin);
+        return towers;
       }
     }
   };
@@ -218,6 +303,8 @@
   __publicField(_CreepFind, "FIND_SPAWN_TO_SPAWN_CREEP_BY_COST", "FIND_SPAWN_TO_SPAWN_CREEP_BY_COST");
   __publicField(_CreepFind, "FIND_SPAWN_WITH_FREE_CAPACITY", "FIND_SPAWN_WITH_FREE_CAPACITY");
   __publicField(_CreepFind, "FIND_SPAWNS_ORDER_BY_ENERGY", "FIND_SPAWNS_ORDER_BY_ENERGY");
+  __publicField(_CreepFind, "FIND_TOWER_WITH_FREE_CAPACITY", "FIND_TOWER_WITH_FREE_CAPACITY");
+  __publicField(_CreepFind, "COUNTER", 0);
   var CreepFind = _CreepFind;
 
   // lib/rand-name.js
@@ -329,30 +416,46 @@
   }
 
   // src/lib/creep/CreepSpawn.js
+  var {
+    Room: {
+      Creeps: { ForceSpawnIfCreepsLessThan, MaximumSpawningTicksBetweenSpawns }
+    }
+  } = define_Config_default;
   var CreepSpawn = class _CreepSpawn extends CreepFind {
     spawn(parameters = PropCreepParameters) {
-      var _a, _b;
+      var _a2, _b, _c, _d;
       this.parameters = parameters;
       this.parameters.name = this.parameters.name || this.name();
       if (!this.parameters.name) {
         return false;
       }
       this.setCreep(Game.creeps[this.parameters.name]);
-      if ((_a = this.creep) == null ? void 0 : _a.spawning) {
+      if ((_a2 = this.creep) == null ? void 0 : _a2.spawning) {
         return false;
       }
       if (this.creep) {
         return true;
       }
-      const spawn2 = this.find(_CreepSpawn.FIND_SPAWNS_ORDER_BY_ENERGY, { desc: true })[0];
-      if (!spawn2) {
+      const spawn = this.find(_CreepSpawn.FIND_SPAWNS_ORDER_BY_ENERGY, { desc: true })[0];
+      if (!spawn) {
         return false;
       }
-      const body = CalculateCreepBody(spawn2.room.energyCapacityAvailable, this.parameters.bodyRatios);
+      let CurrentCreepCount = 0;
+      for (const name in Game.creeps) {
+        if (Game.creeps[name].room === this.parameters.room) {
+          CurrentCreepCount++;
+        }
+      }
+      Memory.CreepSpawnLast = (_b = Memory.CreepSpawnLast) != null ? _b : {};
+      Memory.CreepSpawnLast[this.parameters.room.name] = (_c = Memory.CreepSpawnLast[this.parameters.room.name]) != null ? _c : Game.time;
+      const isTooFewCreeps = ForceSpawnIfCreepsLessThan && CurrentCreepCount < ForceSpawnIfCreepsLessThan;
+      const isBeenTooLongBetweenSpawns = Game.time - Memory.CreepSpawnLast[this.parameters.room.name] >= MaximumSpawningTicksBetweenSpawns;
+      const energy = isTooFewCreeps && isBeenTooLongBetweenSpawns ? Math.max(300, this.parameters.room.energyAvailable) : spawn.room.energyCapacityAvailable;
+      const body = CalculateCreepBody(energy, this.parameters.bodyRatios);
       if (body.length === 0) {
         throw new Error(`body.length: ${body.length}`);
       }
-      const result = spawn2.spawnCreep(body, this.parameters.name, {
+      const result = spawn.spawnCreep(body, this.parameters.name, {
         memory: {
           role: this.parameters.role,
           // bodyRatios: this.parameters.bodyRatios, // ! TODO FEATURE
@@ -361,12 +464,16 @@
       });
       if (result === ERR_NOT_ENOUGH_ENERGY) {
         return false;
+      } else if (result !== OK) {
+        console.log("SPAWN RESULT IS", result);
+        return false;
       }
+      Memory.CreepSpawnLast[this.parameters.room.name] = Game.time;
       this.setCreep(Game.creeps[this.parameters.name]);
       if (!this.creep) {
         return false;
       }
-      if ((_b = this.creep) == null ? void 0 : _b.spawning) {
+      if ((_d = this.creep) == null ? void 0 : _d.spawning) {
         return false;
       }
       return true;
@@ -400,6 +507,11 @@
         console.log("=(");
         return false;
       }
+      if (Memory.ResetJob) {
+        delete this.memory.job;
+        delete this.memory.jobGroupIndex;
+        this.log(`MEMORY RESET JOB...`);
+      }
       const _do = (job) => {
         switch (job) {
           case _CreepJob.HARVEST_ENERGY:
@@ -422,6 +534,8 @@
             return this.transfer("extension", RESOURCE_ENERGY, "*");
           case _CreepJob.TRANSFER_ENERGY_TO_SPAWN:
             return this.transfer("spawn", RESOURCE_ENERGY, "*");
+          case _CreepJob.TRANSFER_ENERGY_TO_TOWER:
+            return this.transfer("tower", RESOURCE_ENERGY, "*");
           case _CreepJob.REPAIR_ROAD_NEAR_SOURCE:
             return this.repair("road-near-source");
         }
@@ -461,12 +575,15 @@
       }
     }
     harvest(resourceType = RESOURCE_ENERGY) {
-      var _a;
+      var _a2;
       if (!this.creep) {
         delete this.memory.attemptsHarvestSource;
         return false;
       }
-      if (this.creep.store.getFreeCapacity(resourceType) === 0) {
+      const free = this.creep.store.getFreeCapacity(resourceType);
+      const used = this.creep.store.getUsedCapacity(resourceType);
+      const total = this.creep.store.getCapacity(resourceType);
+      if (free === 0) {
         delete this.memory.attemptsHarvestSource;
         return false;
       }
@@ -494,10 +611,15 @@
         this.dryRun && this.creep.cancelOrder("move");
         !this.dryRun && this.status("\u{1F699}");
         if (distance(this.creep.pos, target.pos) <= _CreepJob.ATTEMPTS_HARVEST_DISTANCE) {
-          this.memory.attemptsHarvestSource = ((_a = this.memory.attemptsHarvestSource) != null ? _a : 0) + 1;
+          this.memory.attemptsHarvestSource = ((_a2 = this.memory.attemptsHarvestSource) != null ? _a2 : 0) + 1;
         } else {
           delete this.memory.attemptsHarvestSource;
         }
+      } else if (result === ERR_NOT_ENOUGH_EXTENSIONS) {
+        !this.dryRun && this.status("\u{1FAB9}");
+        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        this.dryRun && this.creep.cancelOrder("move");
+        !this.dryRun && this.status("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
         !this.dryRun && this.status("\u{1F620}");
@@ -508,11 +630,11 @@
       return true;
     }
     pickup(resourceType = RESOURCE_ENERGY) {
-      var _a;
+      var _a2;
       if (this.creep.store.getFreeCapacity(resourceType) === 0) {
         return false;
       }
-      const target = (_a = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a[0];
+      const target = (_a2 = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a2[0];
       if (!target) {
         return false;
       }
@@ -529,21 +651,16 @@
       return true;
     }
     transfer(to = "spawn", resourceType = RESOURCE_ENERGY, amount = 100) {
+      var _a2, _b;
       if (this.creep.store.getUsedCapacity(resourceType) === 0) {
         return false;
       }
-      let target;
-      switch (to) {
-        case "controller":
-          target = this.find(CreepFind.FIND_ROOM_CONTROLLER);
-          break;
-        case "extension":
-          target = this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0];
-          break;
-        case "spawn":
-          target = this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0];
-          break;
-      }
+      const target = (_b = (_a2 = {
+        controller: () => this.find(CreepFind.FIND_ROOM_CONTROLLER),
+        extension: () => this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0],
+        spawn: () => this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0],
+        tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0]
+      })[to]) == null ? void 0 : _b.call(_a2);
       if (!target) {
         return false;
       }
@@ -658,6 +775,7 @@
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED", "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_EXTENSION", "TRANSFER_ENERGY_TO_EXTENSION");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_SPAWN", "TRANSFER_ENERGY_TO_SPAWN");
+  __publicField(_CreepJob, "TRANSFER_ENERGY_TO_TOWER", "TRANSFER_ENERGY_TO_TOWER");
   __publicField(_CreepJob, "RESULT_TO_TEXT", {
     [OK]: "OK",
     [ERR_NOT_OWNER]: "NOT_OWNER",
@@ -687,6 +805,7 @@
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.TRANSFER_ENERGY_TO_TOWER,
         _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
@@ -701,10 +820,10 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
-        _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
+        _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
       [
@@ -727,6 +846,23 @@
         _CreepJob.PICKUP_ENERGY,
         _CreepJob.HARVEST_ENERGY
       ]
+    ],
+    RoleTower: [
+      [
+        //
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        _CreepJob.TRANSFER_ENERGY_TO_TOWER,
+        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        _CreepJob.BUILD,
+        _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
+        _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
+      ],
+      [
+        //
+        _CreepJob.PICKUP_ENERGY,
+        _CreepJob.HARVEST_ENERGY
+      ]
     ]
   });
   var CreepJob = _CreepJob;
@@ -736,19 +872,25 @@
     static RoleWorker() {
       return {
         role: "RoleWorker",
-        body: { [WORK]: 42, [CARRY]: 8, [MOVE]: 2 }
+        body: { [WORK]: 100, [CARRY]: 20, [MOVE]: 10 }
       };
     }
     static RoleBuilder() {
       return {
         role: "RoleBuilder",
-        body: { [WORK]: 42, [CARRY]: 8, [MOVE]: 2 }
+        body: { [WORK]: 100, [CARRY]: 20, [MOVE]: 10 }
       };
     }
     static RoleManager() {
       return {
         role: "RoleManager",
-        body: { [WORK]: 42, [CARRY]: 8, [MOVE]: 2 }
+        body: { [WORK]: 100, [CARRY]: 20, [MOVE]: 10 }
+      };
+    }
+    static RoleTower() {
+      return {
+        role: "RoleTower",
+        body: { [WORK]: 100, [CARRY]: 20, [MOVE]: 1 }
       };
     }
   };
@@ -760,15 +902,10 @@
       this.setCreep(creep);
     }
     live() {
-      var _a, _b;
       if (this.creep.spawning) {
         return;
       }
       if (!this.job()) {
-        if (Memory.StatusesShow && ((_b = (_a = this.memory) == null ? void 0 : _a.statuses) == null ? void 0 : _b.length) > 0) {
-          this.memory.statuses = this.memory.statuses.filter(({ stopShow }) => stopShow > Game.time);
-          this.creep.say(this.memory.statuses.map(({ emoji }) => emoji).join(""));
-        }
         return;
       }
     }
@@ -779,15 +916,16 @@
     for (const name in Game.creeps) {
       new Creep(Game.creeps[name]).live();
     }
+    Memory.ResetJob = false;
   }
 
   // lib/table.js
   function table2(rows = []) {
-    var _a, _b;
+    var _a2, _b;
     const colsWidth = [];
     for (const row of rows) {
       for (let ci = 0; ci < row.length; ci++) {
-        colsWidth[ci] = Math.max(colsWidth[ci] || 0, `${(_a = row[ci]) != null ? _a : ""}`.length);
+        colsWidth[ci] = Math.max(colsWidth[ci] || 0, `${(_a2 = row[ci]) != null ? _a2 : ""}`.length);
       }
     }
     for (let ci = 0; ci < colsWidth.length; ci++) {
@@ -814,8 +952,11 @@
   // src/lib/process/MemoryLog.js
   var Time = null;
   function MemoryLog() {
-    var _a;
-    Memory.MemoryLogShow = (_a = Memory.MemoryLogShow) != null ? _a : true;
+    var _a2;
+    Memory.MemoryLogShow = (_a2 = Memory.MemoryLogShow) != null ? _a2 : true;
+    if (!Memory.MemoryLogShow) {
+      return;
+    }
     if (Time === null) {
       Time = Game.time;
       Memory.log = [];
@@ -834,8 +975,8 @@
 
   // src/lib/process/Observe.js
   function Observe() {
-    var _a, _b, _c, _d;
-    Memory.NotiStack = (_a = Memory.NotiStack) != null ? _a : {};
+    var _a2, _b, _c, _d;
+    Memory.NotiStack = (_a2 = Memory.NotiStack) != null ? _a2 : {};
     const Notifications = {};
     for (const name in Game.rooms) {
       const room = Game.rooms[name];
@@ -895,14 +1036,42 @@
         //
       }
     }
-  } = define_Config_default;
+  } = config_default;
+  var ROADS_AROUND_SOURCES_COORDS = [
+    [-2, -2],
+    [-2, -1],
+    [-2, 0],
+    [-2, 1],
+    [-2, 2],
+    [-1, -2],
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [-1, 2],
+    [0, -2],
+    [0, -1],
+    [0, 1],
+    [0, 2],
+    [1, -2],
+    [1, -1],
+    [1, 0],
+    [1, 1],
+    [1, 2],
+    [2, -2],
+    [2, -1],
+    [2, 0],
+    [2, 1],
+    [2, 2]
+  ];
   function Room2() {
     for (const name in Game.rooms) {
-      spawn(Game.rooms[name]);
+      const room = Game.rooms[name];
+      spawnCreeps(room);
+      roadsAroundSources(room);
     }
   }
-  function spawn(room) {
-    var _a;
+  function spawnCreeps(room) {
+    var _a2;
     const CCCBR = {};
     for (const role in CBR) {
       CCCBR[role] = 0;
@@ -910,7 +1079,7 @@
     for (const name in Game.creeps) {
       const creep = Game.creeps[name];
       if (creep.room === room) {
-        CCCBR[creep.memory.role] = ((_a = CCCBR[creep.memory.role]) != null ? _a : 0) + 1;
+        CCCBR[creep.memory.role] = ((_a2 = CCCBR[creep.memory.role]) != null ? _a2 : 0) + 1;
       }
     }
     if (Memory.CreepsShow) {
@@ -924,6 +1093,15 @@
     {
       let next;
       let reason = "";
+      if (!next) {
+        for (const role in CBR) {
+          if (!CCCBR[role] || CCCBR[role] < CBR[role]) {
+            next = { room, ...CreepRole[role]() };
+            reason = `The count of creeps is less than needed.`;
+            break;
+          }
+        }
+      }
       if (!next && ARBTRP > 0) {
         const nextByTimeList = [];
         for (const name in Game.creeps) {
@@ -931,8 +1109,8 @@
           if (creep.spawning) {
             continue;
           }
-          const remaining = creep.ticksToLive / CREEP_LIFE_TIME * 100;
-          if (remaining < define_Config_default.AutoRespawnByTicksRemainingPercent) {
+          const remaining = creep.ticksToLive / CREEP_LIFE_TIME;
+          if (remaining < ARBTRP) {
             nextByTimeList.push({ remaining, creep });
           }
         }
@@ -943,19 +1121,37 @@
           reason = `Creep "${creep.name}" has ${creep.ticksToLive} ticks remaining`;
         }
       }
-      if (!next) {
-        for (const role in CBR) {
-          if (!CCCBR[role] || CCCBR[role] < CBR[role]) {
-            next = { room, ...CreepRole[role]() };
-            reason = `The count of creeps is less than needed.`;
+      if (next) {
+        if (Memory.MemoryLogShow) {
+          Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
+          reason && Memory.log.push(["", `Reason: ${reason}`], []);
+        }
+        new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
+      }
+    }
+  }
+  function roadsAroundSources(room) {
+    if (Game.time % 60 !== 0) {
+      return;
+    }
+    Memory.log.push(["roadsAroundSources()"]);
+    const sources = room.find(FIND_SOURCES);
+    for (const source of sources) {
+      for (const [x, y] of ROADS_AROUND_SOURCES_COORDS) {
+        const _x = source.pos.x + x;
+        const _y = source.pos.y + y;
+        let terrainOnly = true;
+        const results = room.lookAt(_x, _y);
+        for (const { type } of results) {
+          if (type !== "terrain" && type !== "creep") {
+            terrainOnly = false;
             break;
           }
         }
-      }
-      if (next) {
-        Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
-        reason && Memory.log.push(["", `Reason: ${reason}`], []);
-        new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
+        if (!terrainOnly) {
+          continue;
+        }
+        room.createConstructionSite(_x, _y, STRUCTURE_ROAD);
       }
     }
   }
@@ -972,8 +1168,8 @@
     }
   } = define_Config_default;
   function ProceduralRoads() {
-    var _a, _b;
-    Memory.RoadsShow = (_a = Memory.RoadsShow) != null ? _a : false;
+    var _a2, _b;
+    Memory.RoadsShow = (_a2 = Memory.RoadsShow) != null ? _a2 : false;
     Memory.Roads = (_b = Memory.Roads) != null ? _b : {};
     calculate();
     add();
@@ -993,7 +1189,7 @@
     }
   }
   function add() {
-    var _a, _b;
+    var _a2, _b;
     for (const name in Game.creeps) {
       const creep = Game.creeps[name];
       if (creep.spawning) {
@@ -1010,7 +1206,7 @@
         // Room name
         room: room.name,
         // Rate to build
-        rate: Math.min(RateToBuild, ((_b = (_a = Memory.Roads[key]) == null ? void 0 : _a.rate) != null ? _b : RateDownByTick) + RateUpByCreep),
+        rate: Math.min(RateToBuild, ((_b = (_a2 = Memory.Roads[key]) == null ? void 0 : _a2.rate) != null ? _b : RateDownByTick) + RateUpByCreep),
         // Last rate update
         update: Date.now()
       };

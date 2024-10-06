@@ -24,6 +24,7 @@ export default class CreepJob extends CreepSpawn {
   static TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED = "TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED";
   static TRANSFER_ENERGY_TO_EXTENSION = "TRANSFER_ENERGY_TO_EXTENSION";
   static TRANSFER_ENERGY_TO_SPAWN = "TRANSFER_ENERGY_TO_SPAWN";
+  static TRANSFER_ENERGY_TO_TOWER = "TRANSFER_ENERGY_TO_TOWER";
 
   static RESULT_TO_TEXT = {
     [OK]: "OK",
@@ -56,9 +57,11 @@ export default class CreepJob extends CreepSpawn {
 
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+        CreepJob.TRANSFER_ENERGY_TO_TOWER,
 
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
+
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
       ],
       [
@@ -72,12 +75,12 @@ export default class CreepJob extends CreepSpawn {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
 
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
 
-        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
       ],
       [
@@ -105,6 +108,27 @@ export default class CreepJob extends CreepSpawn {
         CreepJob.HARVEST_ENERGY,
       ],
     ],
+
+    RoleTower: [
+      [
+        //
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+
+        CreepJob.TRANSFER_ENERGY_TO_TOWER,
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
+
+        CreepJob.BUILD,
+        CreepJob.REPAIR_ROAD_NEAR_SOURCE,
+        CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
+      ],
+
+      [
+        //
+        CreepJob.PICKUP_ENERGY,
+        CreepJob.HARVEST_ENERGY,
+      ],
+    ],
   };
 
   dryRun = false;
@@ -113,6 +137,12 @@ export default class CreepJob extends CreepSpawn {
     if (!this.creep) {
       console.log("=(");
       return false;
+    }
+
+    if (Memory.ResetJob) {
+      delete this.memory.job;
+      delete this.memory.jobGroupIndex;
+      this.log(`MEMORY RESET JOB...`);
     }
 
     const _do = (job) => {
@@ -145,6 +175,9 @@ export default class CreepJob extends CreepSpawn {
 
         case CreepJob.TRANSFER_ENERGY_TO_SPAWN:
           return this.transfer("spawn", RESOURCE_ENERGY, "*");
+
+        case CreepJob.TRANSFER_ENERGY_TO_TOWER:
+          return this.transfer("tower", RESOURCE_ENERGY, "*");
 
         case CreepJob.REPAIR_ROAD_NEAR_SOURCE:
           return this.repair("road-near-source");
@@ -203,8 +236,12 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
+    const free = this.creep.store.getFreeCapacity(resourceType);
+    const used = this.creep.store.getUsedCapacity(resourceType);
+    const total = this.creep.store.getCapacity(resourceType);
+
     // Full
-    if (this.creep.store.getFreeCapacity(resourceType) === 0) {
+    if (free === 0) {
       delete this.memory.attemptsHarvestSource;
       return false;
     }
@@ -249,6 +286,11 @@ export default class CreepJob extends CreepSpawn {
       } else {
         delete this.memory.attemptsHarvestSource;
       }
+    } else if (result === ERR_NOT_ENOUGH_EXTENSIONS) {
+      !this.dryRun && this.status("🪹");
+      this.creep.moveTo(target, { visualizePathStyle: VPS });
+      this.dryRun && this.creep.cancelOrder("move");
+      !this.dryRun && this.status("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
       !this.dryRun && this.status("😠");
@@ -292,21 +334,12 @@ export default class CreepJob extends CreepSpawn {
       return false;
     }
 
-    let target;
-
-    switch (to) {
-      case "controller":
-        target = this.find(CreepFind.FIND_ROOM_CONTROLLER);
-        break;
-
-      case "extension":
-        target = this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0];
-        break;
-
-      case "spawn":
-        target = this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0];
-        break;
-    }
+    const target = {
+      controller: () => this.find(CreepFind.FIND_ROOM_CONTROLLER),
+      extension: () => this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0],
+      spawn: () => this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0],
+      tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0],
+    }[to]?.();
 
     // BREAK if target not found
     if (!target) {

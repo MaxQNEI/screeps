@@ -9,6 +9,10 @@ export default class CreepMessage extends Props {
   };
 
   log(...msg) {
+    if (!Memory.MemoryLogShow) {
+      return;
+    }
+
     const TTL = "";
 
     const I = [];
@@ -39,20 +43,40 @@ export default class CreepMessage extends Props {
       ].join(" | "),
     );
 
-    Memory.log.push([
-      //
-      // `<span style="color: yellowgreen; font-style: italic;">${this.creep?.name || this.parameters.name}</span>${TTL}`,
-      `[${this.creep.room.name}] ${this.creep.name || this.parameters.name}${TTL}`,
-      ...msg,
-      ...I,
-    ]);
+    let first = false;
+    for (const m of msg) {
+      if (!first) {
+        let statuses = null;
+
+        if (this.memory?.statuses?.length > 0) {
+          this.memory.statuses = this.memory.statuses.filter(({ stopShow }) => stopShow > Game.time);
+          statuses = this.memory.statuses.map(({ emoji }) => emoji).join("");
+        }
+
+        if (Memory.StatusesShow && Game.time % 2 === 0) {
+          this.creep.say(statuses);
+        }
+
+        const out = [
+          //
+          `[${this.creep.room.name}] ${this.creep.name || this.parameters.name}${TTL}`,
+          m,
+          ...I,
+          // statuses,
+        ];
+
+        Memory.log.push(out);
+
+        first = true;
+      } else {
+        Memory.log.push(["", m]);
+      }
+
+      first = true;
+    }
   }
 
-  status(emoji, stopShow = 3) {
-    // if (["🚙"].includes(emoji)) {
-    //   return;
-    // }
-
+  status(emoji, stopShow = 6) {
     this.memory.statuses = (this.memory.statuses ?? []).filter(({ emoji }) => emoji !== emoji);
     this.memory.statuses.push({ emoji, stopShow: Game.time + stopShow });
     this.memory.statuses = this.memory.statuses.sort(({ stopShow: a }, { stopShow: b }) => asc(a, b));
