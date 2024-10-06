@@ -55,7 +55,7 @@ export default class CreepSpawn extends CreepFind {
       Game.time - Memory.CreepSpawnLast[this.parameters.room.name] >= MaximumSpawningTicksBetweenSpawns;
 
     const energy =
-      isTooFewCreeps && isBeenTooLongBetweenSpawns
+      isTooFewCreeps || isBeenTooLongBetweenSpawns
         ? Math.max(300, this.parameters.room.energyAvailable)
         : spawn.room.energyCapacityAvailable;
 
@@ -76,7 +76,7 @@ export default class CreepSpawn extends CreepFind {
 
     if (result === ERR_NOT_ENOUGH_ENERGY) {
       return false;
-    } else if (result !== OK) {
+    } else if (result !== OK && result !== ERR_BUSY) {
       console.log("SPAWN RESULT IS", result);
       return false;
     }

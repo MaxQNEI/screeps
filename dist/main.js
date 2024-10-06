@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 2, RoleBuilder: 2, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 1e-3 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 2, RoleBuilder: 2, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 1e-3 } } };
 
   // src/config.js
   var Config2 = {
@@ -450,7 +450,7 @@
       Memory.CreepSpawnLast[this.parameters.room.name] = (_c = Memory.CreepSpawnLast[this.parameters.room.name]) != null ? _c : Game.time;
       const isTooFewCreeps = ForceSpawnIfCreepsLessThan && CurrentCreepCount < ForceSpawnIfCreepsLessThan;
       const isBeenTooLongBetweenSpawns = Game.time - Memory.CreepSpawnLast[this.parameters.room.name] >= MaximumSpawningTicksBetweenSpawns;
-      const energy = isTooFewCreeps && isBeenTooLongBetweenSpawns ? Math.max(300, this.parameters.room.energyAvailable) : spawn.room.energyCapacityAvailable;
+      const energy = isTooFewCreeps || isBeenTooLongBetweenSpawns ? Math.max(300, this.parameters.room.energyAvailable) : spawn.room.energyCapacityAvailable;
       const body = CalculateCreepBody(energy, this.parameters.bodyRatios);
       if (body.length === 0) {
         throw new Error(`body.length: ${body.length}`);
@@ -464,7 +464,7 @@
       });
       if (result === ERR_NOT_ENOUGH_ENERGY) {
         return false;
-      } else if (result !== OK) {
+      } else if (result !== OK && result !== ERR_BUSY) {
         console.log("SPAWN RESULT IS", result);
         return false;
       }
@@ -722,7 +722,7 @@
           if (!this.memory.myRepairId) {
             const sources = this.find(CreepFind.FIND_SOURCES_BY_DISTANCE);
             const roads = [];
-            const radius = 1;
+            const radius = 2;
             for (const source of sources) {
               const { x: sX, y: sY } = source.pos;
               for (let x = sX - radius; x < sX + radius; x++) {

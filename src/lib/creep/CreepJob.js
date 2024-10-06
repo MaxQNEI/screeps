@@ -419,7 +419,7 @@ export default class CreepJob extends CreepSpawn {
           const sources = this.find(CreepFind.FIND_SOURCES_BY_DISTANCE);
           const roads = [];
 
-          const radius = 1;
+          const radius = 2;
           for (const source of sources) {
             const { x: sX, y: sY } = source.pos;
             for (let x = sX - radius; x < sX + radius; x++) {
