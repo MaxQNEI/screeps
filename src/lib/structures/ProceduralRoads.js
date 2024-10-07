@@ -25,13 +25,21 @@ export default function ProceduralRoads() {
 }
 
 function calculate() {
+  let canBuild = Object.keys(Game.constructionSites).length < MAX_CONSTRUCTION_SITES;
+
   // Every roads
   for (const roomName in Memory.Roads) {
     for (const keyCoords in Memory.Roads[roomName]) {
       // When rate 100+ - create road construction site
       if (Memory.Roads[roomName][keyCoords] >= RateToBuild) {
+        if (!canBuild) {
+          continue;
+        }
+
         // Build
         build(Game.rooms[roomName], keyCoords);
+
+        canBuild = Object.keys(Game.constructionSites).length < MAX_CONSTRUCTION_SITES;
 
         // Next
         continue;
@@ -94,13 +102,13 @@ function add() {
 
 function build(room, keyCoords) {
   // Parse keyCoords
-  const [x, y] = keyCoords.split("x");
+  const [x, y] = keyCoords.split("x").map((v) => parseInt(v));
 
   // Create road construction site
   const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
 
   // Delete when impossible
   if (result === ERR_INVALID_TARGET) {
-    delete Memory.Roads[keyCoords];
+    delete Memory.Roads[room.name][keyCoords];
   }
 }

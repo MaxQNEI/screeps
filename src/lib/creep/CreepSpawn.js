@@ -11,7 +11,7 @@ const {
 } = Config;
 
 export default class CreepSpawn extends CreepFind {
-  spawn(parameters = PropCreepParameters) {
+  spawn(parameters = PropCreepParameters, force = false) {
     this.parameters = parameters;
     this.parameters.name = this.parameters.name || this.name();
 
@@ -61,7 +61,7 @@ export default class CreepSpawn extends CreepFind {
     }
 
     const energy =
-      isTooFewCreeps || isBeenTooLongBetweenSpawns
+      isTooFewCreeps || isBeenTooLongBetweenSpawns || force
         ? Math.max(300, this.parameters.room.energyAvailable)
         : spawn.room.energyCapacityAvailable;
 

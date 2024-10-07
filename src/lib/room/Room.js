@@ -12,8 +12,6 @@ const {
   },
 } = Config;
 
-const ROADS_AROUND_SOURCES_RADIUS = 2;
-
 const ROADS_AROUND_SOURCES_COORDS = [
   [-2, -2],
   [-2, -1],
@@ -93,6 +91,7 @@ function spawnCreeps(room) {
   // TODO: Spawn by ratio
   {
     let next;
+    let force = false;
     let reason = "";
 
     //
@@ -101,6 +100,7 @@ function spawnCreeps(room) {
         if (!CCCBR[role] || CCCBR[role] < CBR[role]) {
           next = { room, ...CreepRole[role]() };
           reason = `The count of creeps is less than needed.`;
+          force = true;
           break;
         }
       }
@@ -139,7 +139,7 @@ function spawnCreeps(room) {
         reason && Memory.log.push(["", `Reason: ${reason}`], []);
       }
 
-      new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
+      new Creep().spawn({ room: next.room, ...CreepRole[next.role]() }, force);
     }
   }
 }

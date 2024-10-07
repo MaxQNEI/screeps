@@ -1,5 +1,5 @@
 import randOf from "../../../lib/rand-of";
-import sequence from "../../../lib/sort";
+import { sequence } from "../../../lib/sort";
 import distance from "../distance";
 import CreepFind from "./CreepFind";
 import CreepSpawn from "./CreepSpawn";
@@ -75,11 +75,12 @@ export default class CreepJob extends CreepSpawn {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
 
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
+
+        CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
 
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
       ],
@@ -118,8 +119,9 @@ export default class CreepJob extends CreepSpawn {
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
 
-        CreepJob.BUILD,
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
+        CreepJob.BUILD,
+
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER,
       ],
 

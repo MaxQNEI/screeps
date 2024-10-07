@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 2, RoleBuilder: 2, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 1e-3 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 2, RoleBuilder: 2, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 1e-4 } } };
 
   // src/config.js
   var Config2 = {
@@ -14,7 +14,7 @@
         MaximumSpawningTicksBetweenSpawns: 1500,
         AutoRespawnByTicksRemainingPercent: 0.1,
         CountByRole: {
-          RoleWorker: 2,
+          RoleWorker: 4,
           RoleBuilder: 2,
           RoleManager: 2,
           RoleTower: 2
@@ -23,7 +23,7 @@
       Roads: {
         RateToBuild: 100,
         RateUpByCreep: 1,
-        RateDownByTick: 1e-3
+        RateDownByTick: 5e-4
       }
     }
   };
@@ -438,7 +438,7 @@
     }
   } = define_Config_default;
   var CreepSpawn = class _CreepSpawn extends CreepFind {
-    spawn(parameters = PropCreepParameters) {
+    spawn(parameters = PropCreepParameters, force = false) {
       var _a2, _b, _c, _d;
       this.parameters = parameters;
       this.parameters.name = this.parameters.name || this.name();
@@ -471,7 +471,7 @@
       } else if (isBeenTooLongBetweenSpawns) {
         Memory.log.push(["CreepSpawn.spawn()", "isBeenTooLongBetweenSpawns!"]);
       }
-      const energy = isTooFewCreeps || isBeenTooLongBetweenSpawns ? Math.max(300, this.parameters.room.energyAvailable) : spawn.room.energyCapacityAvailable;
+      const energy = isTooFewCreeps || isBeenTooLongBetweenSpawns || force ? Math.max(300, this.parameters.room.energyAvailable) : spawn.room.energyCapacityAvailable;
       const body = CalculateCreepBody(energy, this.parameters.bodyRatios);
       if (body.length === 0) {
         throw new Error(`body.length: ${body.length}`);
@@ -844,10 +844,10 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
-        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD,
+        _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
+        _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
       [
@@ -878,8 +878,8 @@
         _CreepJob.TRANSFER_ENERGY_TO_TOWER,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
-        _CreepJob.BUILD,
         _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
+        _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER
       ],
       [
@@ -1116,12 +1116,14 @@
     }
     {
       let next;
+      let force = false;
       let reason = "";
       if (!next) {
         for (const role in CBR) {
           if (!CCCBR[role] || CCCBR[role] < CBR[role]) {
             next = { room, ...CreepRole[role]() };
             reason = `The count of creeps is less than needed.`;
+            force = true;
             break;
           }
         }
@@ -1150,7 +1152,7 @@
           Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
           reason && Memory.log.push(["", `Reason: ${reason}`], []);
         }
-        new Creep().spawn({ room: next.room, ...CreepRole[next.role]() });
+        new Creep().spawn({ room: next.room, ...CreepRole[next.role]() }, force);
       }
     }
   }
@@ -1205,10 +1207,15 @@
     add();
   }
   function calculate() {
+    let canBuild = Object.keys(Game.constructionSites).length < MAX_CONSTRUCTION_SITES;
     for (const roomName in Memory.Roads) {
       for (const keyCoords in Memory.Roads[roomName]) {
         if (Memory.Roads[roomName][keyCoords] >= RateToBuild) {
+          if (!canBuild) {
+            continue;
+          }
           build(Game.rooms[roomName], keyCoords);
+          canBuild = Object.keys(Game.constructionSites).length < MAX_CONSTRUCTION_SITES;
           continue;
         }
         Memory.Roads[roomName][keyCoords] = parseFloat(
@@ -1240,10 +1247,42 @@
     }
   }
   function build(room, keyCoords) {
-    const [x, y] = keyCoords.split("x");
+    const [x, y] = keyCoords.split("x").map((v) => parseInt(v));
     const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
     if (result === ERR_INVALID_TARGET) {
-      delete Memory.Roads[keyCoords];
+      delete Memory.Roads[room.name][keyCoords];
+    }
+  }
+
+  // src/lib/structures/RepairWithTowers.js
+  function RepairWithTowers() {
+    for (const name in Game.rooms) {
+      const towers = [];
+      const repairs = [];
+      const structures = Game.rooms[name].find(FIND_STRUCTURES);
+      for (const structure of structures) {
+        if (!structure.my && structure.structureType !== STRUCTURE_ROAD) {
+          continue;
+        }
+        if (structure.structureType === STRUCTURE_TOWER) {
+          if (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+            towers.push(structure);
+          }
+        }
+        if (structure.hits < structure.hitsMax) {
+          repairs.push(structure);
+        }
+      }
+      if (repairs.length > 0) {
+        for (const repair of sequence(
+          repairs.sort(({ hits: a }, { hits: b }) => asc2(a, b)),
+          [STRUCTURE_ROAD, STRUCTURE_TOWER, STRUCTURE_SPAWN]
+        )) {
+          for (const tower of towers) {
+            tower.repair(repair);
+          }
+        }
+      }
     }
   }
 
@@ -1254,6 +1293,7 @@
     Observe();
     Room2();
     ProceduralRoads();
+    RepairWithTowers();
     Live();
     MemoryLog();
   }
