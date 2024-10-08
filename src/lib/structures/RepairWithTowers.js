@@ -1,6 +1,19 @@
 import { asc, sequence } from "../../../lib/sort.js";
 
+const {
+  Room: {
+    Towers: { MinEnergyDefence },
+  },
+} = Config;
+
+let WaitRepair = false;
 export default function RepairWithTowers() {
+  if (WaitRepair) {
+    if (Game.time % 60 !== 0) {
+      return;
+    }
+  }
+
   for (const name in Game.rooms) {
     const towers = [];
     const repairs = [];
@@ -13,7 +26,9 @@ export default function RepairWithTowers() {
       }
 
       if (structure.structureType === STRUCTURE_TOWER) {
-        if (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+        const energy = structure.store.energy;
+
+        if (energy > 0 && energy >= MinEnergyDefence) {
           towers.push(structure);
         }
       }
@@ -24,14 +39,18 @@ export default function RepairWithTowers() {
     }
 
     if (repairs.length > 0) {
-      for (const repair of sequence(
+      const repair = sequence(
         repairs.sort(({ hits: a }, { hits: b }) => asc(a, b)),
         [STRUCTURE_ROAD, STRUCTURE_TOWER, STRUCTURE_SPAWN],
-      )) {
-        for (const tower of towers) {
-          tower.repair(repair);
-        }
+      )[0];
+
+      for (const tower of towers) {
+        tower.repair(repair);
       }
+
+      WaitRepair = false;
+    } else {
+      WaitRepair = true;
     }
   }
 }

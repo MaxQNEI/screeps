@@ -13,30 +13,35 @@ const {
 } = Config;
 
 const ROADS_AROUND_SOURCES_COORDS = [
-  [-2, -2],
+  // [-2, -2],
   [-2, -1],
   [-2, 0],
   [-2, 1],
-  [-2, 2],
+  // [-2, 2],
+
   [-1, -2],
   [-1, -1],
   [-1, 0],
   [-1, 1],
   [-1, 2],
+
   [0, -2],
   [0, -1],
+
   [0, 1],
   [0, 2],
+
   [1, -2],
   [1, -1],
   [1, 0],
   [1, 1],
   [1, 2],
-  [2, -2],
+
+  // [2, -2],
   [2, -1],
   [2, 0],
   [2, 1],
-  [2, 2],
+  // [2, 2],
 ];
 
 export default function Room() {
@@ -145,7 +150,7 @@ function spawnCreeps(room) {
 }
 
 function roadsAroundSources(room) {
-  if (Game.time % 60 !== 0) {
+  if (Game.time % 1500 !== 0) {
     return;
   }
 

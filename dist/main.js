@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 2, RoleBuilder: 2, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 1e-4 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 5e-4 }, Towers: { MinEnergyDefence: 300 } } };
 
   // src/config.js
   var Config2 = {
@@ -15,7 +15,7 @@
         AutoRespawnByTicksRemainingPercent: 0.1,
         CountByRole: {
           RoleWorker: 4,
-          RoleBuilder: 2,
+          RoleBuilder: 4,
           RoleManager: 2,
           RoleTower: 2
         }
@@ -24,6 +24,9 @@
         RateToBuild: 100,
         RateUpByCreep: 1,
         RateDownByTick: 5e-4
+      },
+      Towers: {
+        MinEnergyRepair: 500
       }
     }
   };
@@ -1062,11 +1065,11 @@
     }
   } = config_default;
   var ROADS_AROUND_SOURCES_COORDS = [
-    [-2, -2],
+    // [-2, -2],
     [-2, -1],
     [-2, 0],
     [-2, 1],
-    [-2, 2],
+    // [-2, 2],
     [-1, -2],
     [-1, -1],
     [-1, 0],
@@ -1081,11 +1084,11 @@
     [1, 0],
     [1, 1],
     [1, 2],
-    [2, -2],
+    // [2, -2],
     [2, -1],
     [2, 0],
-    [2, 1],
-    [2, 2]
+    [2, 1]
+    // [2, 2],
   ];
   function Room2() {
     for (const name in Game.rooms) {
@@ -1157,7 +1160,7 @@
     }
   }
   function roadsAroundSources(room) {
-    if (Game.time % 60 !== 0) {
+    if (Game.time % 1500 !== 0) {
       return;
     }
     if (Memory.MemoryLogShow) {
@@ -1254,35 +1257,60 @@
     }
   }
 
-  // src/lib/structures/RepairWithTowers.js
-  function RepairWithTowers() {
-    for (const name in Game.rooms) {
-      const towers = [];
+  // src/lib/structures/Towers.js
+  var {
+    Room: {
+      Towers: { MinEnergyRepair }
+    }
+  } = define_Config_default;
+  function Towers() {
+    for (const roomName in Game.rooms) {
+      const towers2attack = [];
+      const towers2repair = [];
+      const hostiles = [];
       const repairs = [];
-      const structures = Game.rooms[name].find(FIND_STRUCTURES);
+      const structures = Game.rooms[roomName].find(FIND_STRUCTURES);
       for (const structure of structures) {
         if (!structure.my && structure.structureType !== STRUCTURE_ROAD) {
           continue;
         }
         if (structure.structureType === STRUCTURE_TOWER) {
-          if (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-            towers.push(structure);
+          const energy = structure.store.energy;
+          if (energy > 0) {
+            towers2attack.push(structure);
+            const hostile = structure.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+            if (hostile) {
+              hostiles.push(hostile);
+            } else if (energy >= MinEnergyRepair) {
+              towers2repair.push(structure);
+            }
           }
         }
-        if (structure.hits < structure.hitsMax) {
-          repairs.push(structure);
-        }
-      }
-      if (repairs.length > 0) {
-        for (const repair of sequence(
-          repairs.sort(({ hits: a }, { hits: b }) => asc2(a, b)),
-          [STRUCTURE_ROAD, STRUCTURE_TOWER, STRUCTURE_SPAWN]
-        )) {
-          for (const tower of towers) {
-            tower.repair(repair);
+        if (hostiles.length === 0) {
+          if (structure.hits < structure.hitsMax) {
+            repairs.push(structure);
           }
         }
       }
+      if (hostiles.length > 0) {
+        attack(towers2attack, hostiles);
+      } else if (repairs.length > 0) {
+        repair(towers2repair, repairs);
+      }
+    }
+  }
+  function attack(towers = [], hostiles = []) {
+    for (const tower of towers) {
+      tower.repair(hostiles[0]);
+    }
+  }
+  function repair(towers = [], repairs = []) {
+    const repairsSorted = sequence(
+      repairs.sort(({ hits: a }, { hits: b }) => asc2(a, b)),
+      [STRUCTURE_ROAD, STRUCTURE_TOWER, STRUCTURE_SPAWN]
+    );
+    for (const tower of towers) {
+      tower.repair(repairsSorted[0]);
     }
   }
 
@@ -1293,7 +1321,7 @@
     Observe();
     Room2();
     ProceduralRoads();
-    RepairWithTowers();
+    Towers();
     Live();
     MemoryLog();
   }

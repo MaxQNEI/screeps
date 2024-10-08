@@ -7,7 +7,7 @@ const Config = {
 
       CountByRole: {
         RoleWorker: 4,
-        RoleBuilder: 2,
+        RoleBuilder: 4,
         RoleManager: 2,
         RoleTower: 2,
       },
@@ -17,6 +17,10 @@ const Config = {
       RateToBuild: 100,
       RateUpByCreep: 1,
       RateDownByTick: 0.0005,
+    },
+
+    Towers: {
+      MinEnergyRepair: 500,
     },
   },
 };

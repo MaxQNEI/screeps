@@ -7,7 +7,7 @@ import MemoryLog from "./lib/process/MemoryLog.js";
 import Observe from "./lib/process/Observe.js";
 import Room from "./lib/room/Room.js";
 import ProceduralRoads from "./lib/structures/ProceduralRoads.js";
-import RepairWithTowers from "./lib/structures/RepairWithTowers.js";
+import Towers from "./lib/structures/Towers.js";
 
 Garbage();
 export default function loop() {
@@ -16,7 +16,7 @@ export default function loop() {
   Observe();
   Room();
   ProceduralRoads();
-  RepairWithTowers();
+  Towers();
   Live();
 
   MemoryLog();
