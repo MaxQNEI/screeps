@@ -15,7 +15,7 @@
     "url": "https://github.com/MaxQNEI/screeps/issues"
   },
   "scripts": {
-    "build": "nodemon esbuild.js -w esbuild.js -w lib/esbuild*",
+    "build": "nodemon esbuild.js -w esbuild.js -w lib/esbuild* -w src/config.js",
     "pretty": "prettier --write lib/ src/"
   },
   "dependencies": {

@@ -47,9 +47,9 @@ export default function Towers() {
       }
     }
 
-    if (hostiles.length > 0) {
+    if (towers2attack.length > 0 && hostiles.length > 0) {
       attack(towers2attack, hostiles);
-    } else if (repairs.length > 0) {
+    } else if (towers2repair.length > 0 && repairs.length > 0) {
       repair(towers2repair, repairs);
     }
   }
@@ -58,6 +58,8 @@ export default function Towers() {
 function attack(towers = [], hostiles = []) {
   for (const tower of towers) {
     tower.repair(hostiles[0]);
+
+    Memory.log.push([`[${tower.room.name}]`]);
   }
 }
 
@@ -68,6 +70,14 @@ function repair(towers = [], repairs = []) {
   );
 
   for (const tower of towers) {
-    tower.repair(repairsSorted[0]);
+    const repair = repairsSorted[0];
+
+    tower.repair(repair);
+
+    Memory.log.push([
+      `[${tower.room.name}] Tower "${tower.id}"`,
+      `REPAIR ${repair.structureType} (${repair.pos.x}x${repair.pos.x})`,
+      `${repair.hits} of ${repair.hitsMax} (${((repair.hits / repair.hitsMax) * 100).toFixed(2)}%)`,
+    ]);
   }
 }

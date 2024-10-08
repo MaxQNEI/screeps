@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 5e-4 }, Towers: { MinEnergyDefence: 300 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 5e-4 }, Towers: { MinEnergyRepair: 500 } } };
 
   // src/config.js
   var Config2 = {
@@ -1292,9 +1292,9 @@
           }
         }
       }
-      if (hostiles.length > 0) {
+      if (towers2attack.length > 0 && hostiles.length > 0) {
         attack(towers2attack, hostiles);
-      } else if (repairs.length > 0) {
+      } else if (towers2repair.length > 0 && repairs.length > 0) {
         repair(towers2repair, repairs);
       }
     }
@@ -1302,6 +1302,7 @@
   function attack(towers = [], hostiles = []) {
     for (const tower of towers) {
       tower.repair(hostiles[0]);
+      Memory.log.push([`[${tower.room.name}]`]);
     }
   }
   function repair(towers = [], repairs = []) {
@@ -1310,7 +1311,13 @@
       [STRUCTURE_ROAD, STRUCTURE_TOWER, STRUCTURE_SPAWN]
     );
     for (const tower of towers) {
-      tower.repair(repairsSorted[0]);
+      const repair2 = repairsSorted[0];
+      tower.repair(repair2);
+      Memory.log.push([
+        `[${tower.room.name}] Tower "${tower.id}"`,
+        `REPAIR ${repair2.structureType} (${repair2.pos.x}x${repair2.pos.x})`,
+        `${repair2.hits} of ${repair2.hitsMax} (${(repair2.hits / repair2.hitsMax * 100).toFixed(2)}%)`
+      ]);
     }
   }
 
