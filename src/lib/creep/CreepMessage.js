@@ -8,6 +8,8 @@ export default class CreepMessage extends Props {
     [MOVE]: "🦿",
   };
 
+  logged = false;
+
   log(...msg) {
     if (!Memory.MemoryLogShow) {
       return;
@@ -45,7 +47,7 @@ export default class CreepMessage extends Props {
 
     let first = false;
     for (const m of msg) {
-      if (!first) {
+      if (!first && !this.logged) {
         let statuses = null;
 
         if (this.memory?.statuses?.length > 0) {
@@ -74,6 +76,8 @@ export default class CreepMessage extends Props {
 
       first = true;
     }
+
+    this.logged = true;
   }
 
   status(emoji, stopShow = 6) {
