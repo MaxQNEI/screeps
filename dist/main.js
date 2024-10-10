@@ -34,7 +34,9 @@
 
   // src/lib/process/Garbage.js
   function Garbage() {
+    const before = JSON.stringify(Memory).length / 1024;
     if (Game.time % CREEP_LIFE_TIME === 0) {
+      Memory.log.push(["Garbage() Memory size before:", `${before.toFixed(2)}KB`]);
       let remove = 0;
       for (const name in Memory.creeps) {
         if (Game.creeps[name] == null) {
@@ -43,8 +45,21 @@
         }
       }
       if (remove > 0) {
-        Game.notify(`Removed Memory.creeps: ${remove}`);
+        const after = JSON.stringify(Memory).length / 1024;
+        Memory.log.push(["", `-${(before - after).toFixed(2)}KB`], []);
+        Game.notify(`Removed Memory.creeps: ${remove} (-${(before - after).toFixed(2)}KB)`);
+      } else {
+        Memory.log.push([]);
       }
+    } else {
+      Memory.log.push(
+        [
+          "Garbage() Memory size:",
+          `${before.toFixed(2)}KB`,
+          `Memory.creeps cleanup will be through ${CREEP_LIFE_TIME - Game.time % CREEP_LIFE_TIME} ticks`
+        ],
+        []
+      );
     }
   }
 
@@ -575,14 +590,23 @@
       if (this.memory.job) {
         const result = _do(this.memory.job);
         if (result) {
-          this.log(`> ${this.memory.job}`);
+          let add2 = [];
+          if (this.memory.job === _CreepJob.BUILD && this.memory.myBuildId) {
+            const target = Game.getObjectById(this.memory.myBuildId);
+            if (target) {
+              add2.push(
+                `: ${target.structureType.toUpperCase()}: ${target.progress} of ${target.progressTotal} (${(target.progress / target.progressTotal * 100).toFixed(2)}%) (${target.pos.x}x${target.pos.y})`
+              );
+            }
+          }
+          this.log(`> ${this.memory.job}${add2.join(" ")}`);
           return;
         } else {
           delete this.memory.job;
           this.status("\u{1F396}\uFE0F");
         }
       }
-      if (!this.memory.job) {
+      while (!this.memory.job) {
         let jobGroupIndex = -1;
         for (const subJobs of _CreepJob.ROLE_TO_JOB[this.memory.role]) {
           jobGroupIndex++;
@@ -710,16 +734,27 @@
     }
     build() {
       if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+        delete this.memory.myBuildId;
         return false;
       }
-      const targets = sequence(
-        this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
-        [STRUCTURE_EXTENSION, STRUCTURE_TOWER],
-        // STRUCTURE_ROAD always end
-        ({ structureType }) => structureType
-      );
-      const target = targets == null ? void 0 : targets[0];
+      let target;
+      if (!this.memory.myBuildId) {
+        const targets = sequence(
+          this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
+          [STRUCTURE_EXTENSION, STRUCTURE_TOWER],
+          // STRUCTURE_ROAD always end
+          ({ structureType }) => structureType
+        );
+        if (!targets[0]) {
+          return false;
+        }
+        target = targets[0];
+        this.memory.myBuildId = target.id;
+      } else {
+        target = Game.getObjectById(this.memory.myBuildId);
+      }
       if (!target) {
+        delete this.memory.myBuildId;
         return false;
       }
       const result = this.creep.build(target);
@@ -1157,7 +1192,7 @@
       }
       if (next) {
         if (Memory.MemoryLogShow) {
-          Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
+          Memory.log.push([`[${room.name}] Room() -> spawnCreeps()`, `Next spawn ${next.role} in ${next.room.name}`]);
           reason && Memory.log.push(["", `Reason: ${reason}`], []);
         }
         new Creep().spawn({ room: next.room, ...CreepRole[next.role]() }, force);
@@ -1348,9 +1383,9 @@
   }
 
   // src/index.js
-  Garbage();
   function loop() {
     MemoryLog();
+    Garbage();
     Observe();
     Room2();
     ProceduralRoads();

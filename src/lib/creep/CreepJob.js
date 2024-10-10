@@ -195,7 +195,17 @@ export default class CreepJob extends CreepSpawn {
 
       if (result) {
         // Continue...
-        this.log(`> ${this.memory.job}`);
+        let add = [];
+        if (this.memory.job === CreepJob.BUILD && this.memory.myBuildId) {
+          const target = Game.getObjectById(this.memory.myBuildId);
+          if (target) {
+            add.push(
+              `: ${target.structureType.toUpperCase()}: ${target.progress} of ${target.progressTotal} (${((target.progress / target.progressTotal) * 100).toFixed(2)}%) (${target.pos.x}x${target.pos.y})`,
+            );
+          }
+        }
+
+        this.log(`> ${this.memory.job}${add.join(" ")}`);
         return;
       } else {
         delete this.memory.job;
@@ -203,7 +213,7 @@ export default class CreepJob extends CreepSpawn {
       }
     }
 
-    if (!this.memory.job) {
+    while (!this.memory.job) {
       let jobGroupIndex = -1;
       for (const subJobs of CreepJob.ROLE_TO_JOB[this.memory.role]) {
         jobGroupIndex++;
@@ -369,19 +379,32 @@ export default class CreepJob extends CreepSpawn {
 
   build() {
     if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+      delete this.memory.myBuildId;
       return false;
     }
 
-    const targets = sequence(
-      this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
-      [STRUCTURE_EXTENSION, STRUCTURE_TOWER], // STRUCTURE_ROAD always end
-      ({ structureType }) => structureType,
-    );
+    let target;
+    if (!this.memory.myBuildId) {
+      const targets = sequence(
+        this.find(CreepFind.FIND_CONSTRUCTION_SITES_BY_DISTANCE),
+        [STRUCTURE_EXTENSION, STRUCTURE_TOWER], // STRUCTURE_ROAD always end
+        ({ structureType }) => structureType,
+      );
 
-    const target = targets?.[0];
+      if (!targets[0]) {
+        return false;
+      }
+
+      target = targets[0];
+
+      this.memory.myBuildId = target.id;
+    } else {
+      target = Game.getObjectById(this.memory.myBuildId);
+    }
 
     // BREAK if target not found
     if (!target) {
+      delete this.memory.myBuildId;
       return false;
     }
 

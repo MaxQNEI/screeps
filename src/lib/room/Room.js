@@ -140,7 +140,7 @@ function spawnCreeps(room) {
 
     if (next) {
       if (Memory.MemoryLogShow) {
-        Memory.log.push([`loop()`, `Next spawn ${next.role} in ${next.room.name}`]);
+        Memory.log.push([`[${room.name}] Room() -> spawnCreeps()`, `Next spawn ${next.role} in ${next.room.name}`]);
         reason && Memory.log.push(["", `Reason: ${reason}`], []);
       }
 

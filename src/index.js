@@ -9,17 +9,17 @@ import Room from "./lib/room/Room.js";
 import ProceduralRoads from "./lib/structures/ProceduralRoads.js";
 import Towers from "./lib/structures/Towers.js";
 
-Garbage();
 export default function loop() {
-  MemoryLog();
+  MemoryLog(); // start
 
+  Garbage();
   Observe();
   Room();
   ProceduralRoads();
   Towers();
   Live();
 
-  MemoryLog();
+  MemoryLog(); // end
 }
 
 eval(`module.exports.loop = ${loop.name};`);
