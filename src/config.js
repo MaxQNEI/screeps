@@ -16,7 +16,7 @@ const Config = {
     Roads: {
       RateToBuild: 100,
       RateUpByCreep: 1,
-      RateDownByTick: 0.0005,
+      RateDownByTick: 0.01,
     },
 
     Towers: {

@@ -109,7 +109,8 @@ Config.Room.Roads.RateDownByTick = 0.005;
 ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](/assets/MemoryLogOut.png)
 
 ```JavaScript
-Memory.MemoryLogShow = true;
+Memory.MLS = false; // show every tick
+Memory.MLSO = false; // show once
 ```
 
 > **USES MEMORY**

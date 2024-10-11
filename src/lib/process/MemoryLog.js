@@ -3,9 +3,13 @@ import table from "../../../lib/table.js";
 let Time = null;
 
 export default function MemoryLog() {
-  Memory.MemoryLogShow = Memory.MemoryLogShow ?? true;
+  Memory.MLS = Memory.MLS ?? false;
+  Memory.MLS = Memory.MLS ?? false;
 
-  if (!Memory.MemoryLogShow) {
+  const show = Memory.MLS || Memory.MLSO;
+
+  if (!show) {
+    Memory.log = [];
     return;
   }
 
@@ -19,7 +23,7 @@ export default function MemoryLog() {
 
     Time = null;
 
-    if (Memory.MemoryLogShow && Memory.log.length > 0) {
+    if (show && Memory.log.length > 0) {
       const _table = [["Memory.log[]"]];
 
       for (const msg of Memory.log) {
@@ -30,5 +34,10 @@ export default function MemoryLog() {
     }
 
     Memory.log = [];
+
+    if (Memory.MLSO) {
+      Memory.MLSO = false;
+      console.log(`Memory.MLSO is done.`);
+    }
   }
 }

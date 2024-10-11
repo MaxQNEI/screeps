@@ -12,6 +12,8 @@ import Towers from "./lib/structures/Towers.js";
 export default function loop() {
   MemoryLog(); // start
 
+  // delete Memory.Roads;
+
   Garbage();
   Observe();
   Room();

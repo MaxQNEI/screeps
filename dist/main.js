@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 5e-4 }, Towers: { MinEnergyRepair: 500 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 0.01 }, Towers: { MinEnergyRepair: 500 } } };
 
   // src/config.js
   var Config2 = {
@@ -23,7 +23,7 @@
       Roads: {
         RateToBuild: 100,
         RateUpByCreep: 1,
-        RateDownByTick: 5e-4
+        RateDownByTick: 0.01
       },
       Towers: {
         MinEnergyRepair: 500
@@ -47,7 +47,6 @@
       if (remove > 0) {
         const after = JSON.stringify(Memory).length / 1024;
         Memory.log.push(["", `-${(before - after).toFixed(2)}KB`], []);
-        Game.notify(`Removed Memory.creeps: ${remove} (-${(before - after).toFixed(2)}KB)`);
       } else {
         Memory.log.push([]);
       }
@@ -178,7 +177,8 @@
     }
     log(...msg) {
       var _a2, _b, _c;
-      if (!Memory.MemoryLogShow) {
+      const show = Memory.MLS || Memory.MLSO;
+      if (!show) {
         return;
       }
       const TTL = "";
@@ -531,17 +531,39 @@
     }
   };
 
-  // src/lib/creep/CreepJob.js
-  var VPS = {
-    fill: "transparent",
-    stroke: "yellowgreen",
-    lineStyle: "dashed",
-    // strokeWidth: 0.15,
-    // opacity: 0.1,
-    strokeWidth: 0.05,
-    opacity: 1
+  // src/lib/creep/CreepMove.js
+  var CreepMove = class extends CreepSpawn {
+    move(target, next = true) {
+      var _a2, _b, _c;
+      let direction;
+      if (!this.memory.myPath || ((_a2 = this.memory.myPath) == null ? void 0 : _a2.targetId) !== target.id) {
+        const path = this.creep.pos.findPathTo(target, { ignoreCreeps: true });
+        this.memory.myPath = { path, targetId: target.id };
+      }
+      if (((_c = (_b = this.memory.myPath) == null ? void 0 : _b.path) == null ? void 0 : _c.length) > 0) {
+        const { x: sX, y: sY } = this.memory.myPath.path[0];
+        if (sX === this.creep.pos.x && sY === this.creep.pos.y) {
+          this.memory.myPath.path = this.memory.myPath.path.slice(1);
+        }
+        if (this.memory.myPath.path.length > 0) {
+          direction = this.memory.myPath.path[0].direction;
+        }
+      }
+      if (direction) {
+        this.creep.move(direction);
+      } else {
+        delete this.memory.myPath;
+        if (next) {
+          this.move(target, false);
+        } else {
+          this.creep.say("\u{1F699}\u{1F620}");
+        }
+      }
+    }
   };
-  var _CreepJob = class _CreepJob extends CreepSpawn {
+
+  // src/lib/creep/CreepJob.js
+  var _CreepJob = class _CreepJob extends CreepMove {
     constructor() {
       super(...arguments);
       __publicField(this, "dryRun", false);
@@ -663,9 +685,8 @@
       const result = this.creep.harvest(target, resourceType);
       this.dryRun && this.creep.cancelOrder("harvest");
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        this.move(target);
         this.dryRun && this.creep.cancelOrder("move");
-        !this.dryRun && this.status("\u{1F699}");
         if (distance(this.creep.pos, target.pos) <= _CreepJob.ATTEMPTS_HARVEST_DISTANCE) {
           this.memory.attemptsHarvestSource = ((_a2 = this.memory.attemptsHarvestSource) != null ? _a2 : 0) + 1;
         } else {
@@ -673,9 +694,8 @@
         }
       } else if (result === ERR_NOT_ENOUGH_EXTENSIONS) {
         !this.dryRun && this.status("\u{1FAB9}");
-        this.creep.moveTo(target, { visualizePathStyle: VPS });
+        this.move(target);
         this.dryRun && this.creep.cancelOrder("move");
-        !this.dryRun && this.status("\u{1F699}");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
         !this.dryRun && this.status("\u{1F620}");
@@ -696,8 +716,8 @@
       }
       const result = this.creep.pickup(target);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: VPS });
-        !this.dryRun && this.status("\u{1F699}");
+        this.move(target);
+        this.dryRun && this.creep.cancelOrder("move");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
         !this.dryRun && this.status("\u{1F620}");
@@ -722,8 +742,8 @@
       }
       const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: VPS });
-        !this.dryRun && this.status("\u{1F699}");
+        this.move(target);
+        this.dryRun && this.creep.cancelOrder("move");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
         !this.dryRun && this.status("\u{1F620}");
@@ -759,8 +779,8 @@
       }
       const result = this.creep.build(target);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: VPS });
-        !this.dryRun && this.status("\u{1F699}");
+        this.move(target);
+        this.dryRun && this.creep.cancelOrder("move");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
         !this.dryRun && this.status("\u{1F620}");
@@ -823,8 +843,8 @@
       }
       const result = this.creep.repair(target);
       if (result === ERR_NOT_IN_RANGE) {
-        this.creep.moveTo(target, { visualizePathStyle: VPS });
-        !this.dryRun && this.status("\u{1F699}");
+        this.move(target);
+        this.dryRun && this.creep.cancelOrder("move");
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
         !this.dryRun && this.status("\u{1F620}");
@@ -1019,9 +1039,12 @@
   // src/lib/process/MemoryLog.js
   var Time = null;
   function MemoryLog() {
-    var _a2;
-    Memory.MemoryLogShow = (_a2 = Memory.MemoryLogShow) != null ? _a2 : true;
-    if (!Memory.MemoryLogShow) {
+    var _a2, _b;
+    Memory.MLS = (_a2 = Memory.MLS) != null ? _a2 : false;
+    Memory.MLS = (_b = Memory.MLS) != null ? _b : false;
+    const show = Memory.MLS || Memory.MLSO;
+    if (!show) {
+      Memory.log = [];
       return;
     }
     if (Time === null) {
@@ -1029,7 +1052,7 @@
       Memory.log = [];
     } else {
       Time = null;
-      if (Memory.MemoryLogShow && Memory.log.length > 0) {
+      if (show && Memory.log.length > 0) {
         const _table = [["Memory.log[]"]];
         for (const msg of Memory.log) {
           _table.push([...msg]);
@@ -1037,6 +1060,10 @@
         table2(_table);
       }
       Memory.log = [];
+      if (Memory.MLSO) {
+        Memory.MLSO = false;
+        console.log(`Memory.MLSO is done.`);
+      }
     }
   }
 
@@ -1191,7 +1218,7 @@
         }
       }
       if (next) {
-        if (Memory.MemoryLogShow) {
+        if (Memory.MLS || Memory.MLSO) {
           Memory.log.push([`[${room.name}] Room() -> spawnCreeps()`, `Next spawn ${next.role} in ${next.room.name}`]);
           reason && Memory.log.push(["", `Reason: ${reason}`], []);
         }
@@ -1203,7 +1230,7 @@
     if (Game.time % 1500 !== 0) {
       return;
     }
-    if (Memory.MemoryLogShow) {
+    if (Memory.MLS || Memory.MLSO) {
       Memory.log.push(["roadsAroundSources()"]);
     }
     const sources = room.find(FIND_SOURCES);
@@ -1292,9 +1319,7 @@
   function build(room, keyCoords) {
     const [x, y] = keyCoords.split("x").map((v) => parseInt(v));
     const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
-    if (result === ERR_INVALID_TARGET) {
-      delete Memory.Roads[room.name][keyCoords];
-    }
+    return result;
   }
 
   // src/lib/structures/Towers.js

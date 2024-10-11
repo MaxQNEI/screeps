@@ -2,20 +2,9 @@ import randOf from "../../../lib/rand-of";
 import { sequence } from "../../../lib/sort";
 import distance from "../distance";
 import CreepFind from "./CreepFind";
-import CreepSpawn from "./CreepSpawn";
+import CreepMove from "./CreepMove.js";
 
-const VPS = {
-  fill: "transparent",
-  stroke: "yellowgreen",
-  lineStyle: "dashed",
-  // strokeWidth: 0.15,
-  // opacity: 0.1,
-
-  strokeWidth: 0.05,
-  opacity: 1,
-};
-
-export default class CreepJob extends CreepSpawn {
+export default class CreepJob extends CreepMove {
   static BUILD = "BUILD";
   static HARVEST_ENERGY = "HARVEST_ENERGY";
   static PICKUP_ENERGY = "PICKUP_ENERGY";
@@ -292,10 +281,8 @@ export default class CreepJob extends CreepSpawn {
     this.dryRun && this.creep.cancelOrder("harvest");
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: VPS });
-
+      this.move(target);
       this.dryRun && this.creep.cancelOrder("move");
-      !this.dryRun && this.status("🚙");
 
       if (distance(this.creep.pos, target.pos) <= CreepJob.ATTEMPTS_HARVEST_DISTANCE) {
         this.memory.attemptsHarvestSource = (this.memory.attemptsHarvestSource ?? 0) + 1;
@@ -304,9 +291,8 @@ export default class CreepJob extends CreepSpawn {
       }
     } else if (result === ERR_NOT_ENOUGH_EXTENSIONS) {
       !this.dryRun && this.status("🪹");
-      this.creep.moveTo(target, { visualizePathStyle: VPS });
+      this.move(target);
       this.dryRun && this.creep.cancelOrder("move");
-      !this.dryRun && this.status("🚙");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
       !this.dryRun && this.status("😠");
@@ -333,8 +319,8 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.pickup(target);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: VPS });
-      !this.dryRun && this.status("🚙");
+      this.move(target);
+      this.dryRun && this.creep.cancelOrder("move");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
       !this.dryRun && this.status("😠");
@@ -365,8 +351,8 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: VPS });
-      !this.dryRun && this.status("🚙");
+      this.move(target);
+      this.dryRun && this.creep.cancelOrder("move");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
       !this.dryRun && this.status("😠");
@@ -411,8 +397,8 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.build(target);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: VPS });
-      !this.dryRun && this.status("🚙");
+      this.move(target);
+      this.dryRun && this.creep.cancelOrder("move");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
       !this.dryRun && this.status("😠");
@@ -495,8 +481,8 @@ export default class CreepJob extends CreepSpawn {
     const result = this.creep.repair(target);
 
     if (result === ERR_NOT_IN_RANGE) {
-      this.creep.moveTo(target, { visualizePathStyle: VPS });
-      !this.dryRun && this.status("🚙");
+      this.move(target);
+      this.dryRun && this.creep.cancelOrder("move");
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
       !this.dryRun && this.status("😠");

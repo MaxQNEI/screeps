@@ -15,7 +15,7 @@ export default function Garbage() {
     if (remove > 0) {
       const after = JSON.stringify(Memory).length / 1024;
       Memory.log.push(["", `-${(before - after).toFixed(2)}KB`], []);
-      Game.notify(`Removed Memory.creeps: ${remove} (-${(before - after).toFixed(2)}KB)`);
+      // Game.notify(`Removed Memory.creeps: ${remove} (-${(before - after).toFixed(2)}KB)`);
     } else {
       Memory.log.push([]);
     }

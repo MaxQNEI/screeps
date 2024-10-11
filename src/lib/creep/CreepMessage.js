@@ -11,7 +11,9 @@ export default class CreepMessage extends Props {
   logged = false;
 
   log(...msg) {
-    if (!Memory.MemoryLogShow) {
+    const show = Memory.MLS || Memory.MLSO;
+
+    if (!show) {
       return;
     }
 

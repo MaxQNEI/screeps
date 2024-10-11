@@ -139,7 +139,7 @@ function spawnCreeps(room) {
     }
 
     if (next) {
-      if (Memory.MemoryLogShow) {
+      if (Memory.MLS || Memory.MLSO) {
         Memory.log.push([`[${room.name}] Room() -> spawnCreeps()`, `Next spawn ${next.role} in ${next.room.name}`]);
         reason && Memory.log.push(["", `Reason: ${reason}`], []);
       }
@@ -154,7 +154,7 @@ function roadsAroundSources(room) {
     return;
   }
 
-  if (Memory.MemoryLogShow) {
+  if (Memory.MLS || Memory.MLSO) {
     Memory.log.push(["roadsAroundSources()"]);
   }
 
