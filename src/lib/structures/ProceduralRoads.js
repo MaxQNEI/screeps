@@ -108,9 +108,9 @@ function build(room, keyCoords) {
   const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
 
   // Delete when impossible
-  // if (result === ERR_INVALID_TARGET) {
-  //   delete Memory.Roads[room.name][keyCoords];
-  // }
+  if (result === ERR_INVALID_TARGET) {
+    delete Memory.Roads[room.name][keyCoords];
+  }
 
   return result;
 }

@@ -390,77 +390,13 @@
     return string.replace(/(\w+)/g, (m, p1) => `${p1[0].toUpperCase()}${p1.slice(1).toLowerCase()}`);
   }
 
-  // src/lib/creep/CalculateCreepBody.js
-  function CalculateCreepBody(energy = 300, ratios = { [WORK]: 1, [CARRY]: 0.5, [MOVE]: 0.1 }) {
-    const names = Object.keys(ratios);
-    let result = [];
-    let _energy = energy;
-    for (const name of names) {
-      result.push(name);
-      _energy -= BODYPART_COST[name];
-    }
-    if (_energy < 0) {
-      return false;
-    }
-    {
-      let _available = [];
-      let _ratios = {};
-      let _places = MAX_CREEP_SIZE;
-      while (true) {
-        _energy = energy - result.reduce((pv, cv) => pv + BODYPART_COST[cv], 0);
-        _available = names.filter((name) => BODYPART_COST[name] <= _energy);
-        _places = MAX_CREEP_SIZE - result.length;
-        _ratios = {};
-        if (_places === 0) {
-          break;
-        } else if (_available.length === 0) {
-          break;
-        } else if (_places < 0) {
-          while (_places < 0) {
-            const _toRemove = names.map((name) => ({
-              name,
-              count: result.filter((_name) => _name === name).length,
-              ratio: ratios[name]
-            })).filter(({ count }) => count > 1).sort(({ ratio: a }, { ratio: b }) => asc2(a, b))[0].name;
-            const _toRemoveIndex = result.indexOf(_toRemove);
-            result = result.filter((name, index, array) => index !== _toRemoveIndex);
-            _places = MAX_CREEP_SIZE - result.length;
-          }
-          break;
-        }
-        for (const _name of _available) {
-          _ratios[_name] = ratios[_name];
-        }
-        const add2 = {};
-        for (const name of _available) {
-          add2[name] = Math.min(
-            1,
-            Math.floor(
-              _energy / BODYPART_COST[name] * (_available.filter((_name) => _name !== name).reduce((pv, _name) => pv + _ratios[_name], 0) * 1e3 * _ratios[name]) / 1e3
-            )
-          );
-        }
-        if (Object.values(add2).filter((v) => v > 0).length === 0) {
-          const higherRatio = Object.entries(add2).sort(([_1, a], [_2, b]) => desc(a, b))[0];
-          const [name, _] = higherRatio;
-          result.push(name);
-        } else {
-          for (const name in add2) {
-            add2[name] > 0 && result.push(...new Array(add2[name]).fill(name));
-          }
-        }
-      }
-    }
-    return result.sort(asc2);
-  }
-
   // src/lib/creep/CreepSpawn.js
   var {
     Room: {
       Creeps: { ForceSpawnIfCreepsLessThan, MaximumSpawningTicksBetweenSpawns }
     }
   } = define_Config_default;
-  var CreepSpawn = class _CreepSpawn extends CreepFind {
+  var _CreepSpawn = class _CreepSpawn extends CreepFind {
     spawn(parameters = PropCreepParameters, force = false) {
       var _a2, _b, _c, _d;
       this.parameters = parameters;
@@ -495,9 +431,23 @@
         Memory.log.push(["CreepSpawn.spawn()", "isBeenTooLongBetweenSpawns!"]);
       }
       const energy = isTooFewCreeps || isBeenTooLongBetweenSpawns || force ? Math.max(300, this.parameters.room.energyAvailable) : spawn.room.energyCapacityAvailable;
-      const body = CalculateCreepBody(energy, this.parameters.bodyRatios);
+      if (this.parameters.room.energyAvailable < energy) {
+        return false;
+      }
+      const body = ((energy2) => {
+        const bodyRatiosAvailable = Object.entries(_CreepSpawn.PACKS.Worker).filter(
+          ([_energy]) => energy2 >= parseInt(_energy)
+        );
+        const bodyRatios = bodyRatiosAvailable[bodyRatiosAvailable.length - 1][1];
+        const result2 = [];
+        for (const name in bodyRatios) {
+          result2.push(...new Array(bodyRatios[name]).fill(name));
+        }
+        return result2.sort(asc2);
+      })(energy);
       if (body.length === 0) {
-        throw new Error(`body.length: ${body.length}`);
+        console.log(`[WARN] CreepSpawn.spawn() body.length: ${body.length}`, energy);
+        return false;
       }
       const result = spawn.spawnCreep(body, this.parameters.name, {
         memory: {
@@ -530,6 +480,33 @@
       return name;
     }
   };
+  __publicField(_CreepSpawn, "PACKS", {
+    Worker: {
+      200: { [WORK]: 1, [CARRY]: 1, [MOVE]: 1 },
+      300: { [WORK]: 2, [CARRY]: 1, [MOVE]: 1 },
+      350: { [WORK]: 2, [CARRY]: 1, [MOVE]: 2 },
+      400: { [WORK]: 2, [CARRY]: 2, [MOVE]: 2 },
+      450: { [WORK]: 3, [CARRY]: 1, [MOVE]: 2 },
+      500: { [WORK]: 3, [CARRY]: 2, [MOVE]: 2 },
+      550: { [WORK]: 4, [CARRY]: 1, [MOVE]: 2 },
+      600: { [WORK]: 4, [CARRY]: 2, [MOVE]: 2 },
+      650: { [WORK]: 5, [CARRY]: 1, [MOVE]: 2 },
+      700: { [WORK]: 5, [CARRY]: 2, [MOVE]: 2 },
+      750: { [WORK]: 6, [CARRY]: 1, [MOVE]: 2 },
+      800: { [WORK]: 6, [CARRY]: 2, [MOVE]: 2 },
+      850: { [WORK]: 6, [CARRY]: 2, [MOVE]: 3 },
+      900: { [WORK]: 6, [CARRY]: 3, [MOVE]: 3 },
+      950: { [WORK]: 7, [CARRY]: 2, [MOVE]: 3 },
+      1e3: { [WORK]: 7, [CARRY]: 3, [MOVE]: 3 },
+      1050: { [WORK]: 8, [CARRY]: 2, [MOVE]: 3 },
+      1100: { [WORK]: 8, [CARRY]: 3, [MOVE]: 3 },
+      1150: { [WORK]: 8, [CARRY]: 3, [MOVE]: 4 },
+      1200: { [WORK]: 8, [CARRY]: 4, [MOVE]: 4 },
+      1250: { [WORK]: 9, [CARRY]: 3, [MOVE]: 4 },
+      1300: { [WORK]: 9, [CARRY]: 4, [MOVE]: 4 }
+    }
+  });
+  var CreepSpawn = _CreepSpawn;
 
   // src/lib/creep/CreepMove.js
   var CreepMove = class extends CreepSpawn {
@@ -537,7 +514,7 @@
       var _a2, _b, _c;
       let direction;
       if (!this.memory.myPath || ((_a2 = this.memory.myPath) == null ? void 0 : _a2.targetId) !== target.id) {
-        const path = this.creep.pos.findPathTo(target, { ignoreCreeps: true });
+        const path = this.creep.pos.findPathTo(target, { ignoreCreeps: true, plainCost: 2, swampCost: 10 });
         this.memory.myPath = { path, targetId: target.id };
       }
       if (((_c = (_b = this.memory.myPath) == null ? void 0 : _b.path) == null ? void 0 : _c.length) > 0) {
@@ -563,6 +540,16 @@
   };
 
   // src/lib/creep/CreepJob.js
+  var COORDS_RADIUS_1 = [
+    [-1, -1],
+    [0, -1],
+    [1, -1],
+    [-1, 0],
+    [1, 0],
+    [-1, 1],
+    [0, 1],
+    [1, 1]
+  ];
   var _CreepJob = class _CreepJob extends CreepMove {
     constructor() {
       super(...arguments);
@@ -753,6 +740,7 @@
       return true;
     }
     build() {
+      var _a2;
       if (this.creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
         delete this.memory.myBuildId;
         return false;
@@ -768,7 +756,17 @@
         if (!targets[0]) {
           return false;
         }
-        target = targets[0];
+        const isRoadsOnly = !targets.some(({ structureType }) => structureType !== STRUCTURE_ROAD);
+        const roadsNearSource = isRoadsOnly && targets.filter(({ pos }) => {
+          for (const [x, y] of COORDS_RADIUS_1) {
+            const result2 = this.creep.room.lookForAt(LOOK_SOURCES, pos.x + x, pos.y + y);
+            if (result2.length > 0) {
+              return true;
+            }
+          }
+          return false;
+        });
+        target = (_a2 = roadsNearSource == null ? void 0 : roadsNearSource[0]) != null ? _a2 : targets[0];
         this.memory.myBuildId = target.id;
       } else {
         target = Game.getObjectById(this.memory.myBuildId);
@@ -1116,9 +1114,9 @@
     const controller = room.controller;
     const current = controller.progress;
     const total = controller.progressTotal;
-    const percent = Math.floor(current / total * 100);
-    const p_x10 = Math.floor(percent / 10);
-    return { current, total, percent, p_x10 };
+    const progress = parseFloat((current / total).toFixed(1));
+    const percent = Math.floor(progress * 100);
+    return { current, total, progress, percent };
   }
 
   // src/lib/room/Room.js
@@ -1319,6 +1317,9 @@
   function build(room, keyCoords) {
     const [x, y] = keyCoords.split("x").map((v) => parseInt(v));
     const result = room.createConstructionSite(x, y, STRUCTURE_ROAD);
+    if (result === ERR_INVALID_TARGET) {
+      delete Memory.Roads[room.name][keyCoords];
+    }
     return result;
   }
 

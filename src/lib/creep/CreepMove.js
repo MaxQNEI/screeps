@@ -5,7 +5,7 @@ export default class CreepMove extends CreepSpawn {
     let direction;
 
     if (!this.memory.myPath || this.memory.myPath?.targetId !== target.id) {
-      const path = this.creep.pos.findPathTo(target, { ignoreCreeps: true });
+      const path = this.creep.pos.findPathTo(target, { ignoreCreeps: true, plainCost: 2, swampCost: 10 });
       this.memory.myPath = { path, targetId: target.id };
     }
 

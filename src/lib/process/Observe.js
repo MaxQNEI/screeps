@@ -64,8 +64,8 @@ function getRoomControllerProgress(room) {
 
   const current = controller.progress;
   const total = controller.progressTotal;
-  const percent = Math.floor((current / total) * 100);
-  const p_x10 = Math.floor(percent / 10);
+  const progress = parseFloat((current / total).toFixed(1));
+  const percent = Math.floor(progress * 100);
 
-  return { current, total, percent, p_x10 };
+  return { current, total, progress, percent };
 }

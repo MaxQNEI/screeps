@@ -4,6 +4,17 @@ import distance from "../distance";
 import CreepFind from "./CreepFind";
 import CreepMove from "./CreepMove.js";
 
+const COORDS_RADIUS_1 = [
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [-1, 0],
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1],
+];
+
 export default class CreepJob extends CreepMove {
   static BUILD = "BUILD";
   static HARVEST_ENERGY = "HARVEST_ENERGY";
@@ -381,7 +392,24 @@ export default class CreepJob extends CreepMove {
         return false;
       }
 
-      target = targets[0];
+      // When only road - build nearest source (if exists)
+      const isRoadsOnly = !targets.some(({ structureType }) => structureType !== STRUCTURE_ROAD);
+
+      const roadsNearSource =
+        isRoadsOnly &&
+        targets.filter(({ pos }) => {
+          for (const [x, y] of COORDS_RADIUS_1) {
+            const result = this.creep.room.lookForAt(LOOK_SOURCES, pos.x + x, pos.y + y);
+
+            if (result.length > 0) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+
+      target = roadsNearSource?.[0] ?? targets[0];
 
       this.memory.myBuildId = target.id;
     } else {
