@@ -182,3 +182,15 @@ function roadsAroundSources(room) {
     }
   }
 }
+
+export function CountCreepsByRoom() {
+  let CreepCountByRoom = {};
+
+  for (const name in Game.creeps) {
+    (CreepCountByRoom[Game.creeps[name].room.name] = CreepCountByRoom[Game.creeps[name].room.name] ?? []).push(name);
+  }
+
+  for (const name in CreepCountByRoom) {
+    Memory.log.push([`${name} creeps:`, CreepCountByRoom[name].length]);
+  }
+}

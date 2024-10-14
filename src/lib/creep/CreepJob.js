@@ -1,5 +1,6 @@
 import randOf from "../../../lib/rand-of";
 import { sequence } from "../../../lib/sort";
+import Config from "../../config.js";
 import distance from "../distance";
 import CreepFind from "./CreepFind";
 import CreepMove from "./CreepMove.js";
@@ -25,6 +26,7 @@ export default class CreepJob extends CreepMove {
   static TRANSFER_ENERGY_TO_EXTENSION = "TRANSFER_ENERGY_TO_EXTENSION";
   static TRANSFER_ENERGY_TO_SPAWN = "TRANSFER_ENERGY_TO_SPAWN";
   static TRANSFER_ENERGY_TO_TOWER = "TRANSFER_ENERGY_TO_TOWER";
+  static TRANSFER_ENERGY_TO_TOWER_IF_NEEDED = "TRANSFER_ENERGY_TO_TOWER_IF_NEEDED";
 
   static RESULT_TO_TEXT = {
     [OK]: "OK",
@@ -54,6 +56,7 @@ export default class CreepJob extends CreepMove {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
 
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
@@ -75,6 +78,7 @@ export default class CreepJob extends CreepMove {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
 
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
@@ -114,6 +118,7 @@ export default class CreepJob extends CreepMove {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
 
         CreepJob.TRANSFER_ENERGY_TO_TOWER,
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
@@ -172,6 +177,17 @@ export default class CreepJob extends CreepMove {
           }
 
           return this.transfer("controller", RESOURCE_ENERGY, "*");
+
+        case CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED:
+          const towers = this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)
+            .filter(({ energy }) => energy < Config.Room.Towers.MinRequiredEnergy)
+            .sort(({ energy: a }, { energy: b }) => asc(a, b));
+
+          if (towers.length === 0) {
+            return false;
+          }
+
+          return this.transfer("tower", RESOURCE_ENERGY, "*", towers);
 
         case CreepJob.TRANSFER_ENERGY_TO_CONTROLLER:
           return this.transfer("controller", RESOURCE_ENERGY, "*");
@@ -342,20 +358,33 @@ export default class CreepJob extends CreepMove {
     return true;
   }
 
-  transfer(to = "spawn", resourceType = RESOURCE_ENERGY, amount = 100) {
+  transfer(to = "spawn", resourceType = RESOURCE_ENERGY, amount = 100, targets = []) {
     if (this.creep.store.getUsedCapacity(resourceType) === 0) {
+      delete this.memory.myTransferId;
       return false;
     }
 
-    const target = {
-      controller: () => this.find(CreepFind.FIND_ROOM_CONTROLLER),
-      extension: () => this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0],
-      spawn: () => this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0],
-      tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0],
-    }[to]?.();
+    let target;
+
+    if (!this.memory.myTransferId) {
+      target =
+        targets.length > 0
+          ? targets[0]
+          : {
+              controller: () => this.find(CreepFind.FIND_ROOM_CONTROLLER),
+              extension: () => this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0],
+              spawn: () => this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0],
+              tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0],
+            }[to]?.();
+
+      this.memory.myTransferId = target.id;
+    } else {
+      target = Game.getObjectById(this.memory.myTransferId);
+    }
 
     // BREAK if target not found
     if (!target) {
+      delete this.memory.myTransferId;
       return false;
     }
 

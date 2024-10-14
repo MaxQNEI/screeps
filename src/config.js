@@ -20,6 +20,7 @@ const Config = {
     },
 
     Towers: {
+      MinRequiredEnergy: 500,
       MinEnergyRepair: 500,
     },
   },

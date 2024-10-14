@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 0.01 }, Towers: { MinEnergyRepair: 500 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 0.01 }, Towers: { MinRequiredEnergy: 500, MinEnergyRepair: 500 } } };
 
   // src/config.js
   var Config2 = {
@@ -26,6 +26,7 @@
         RateDownByTick: 0.01
       },
       Towers: {
+        MinRequiredEnergy: 500,
         MinEnergyRepair: 500
       }
     }
@@ -584,6 +585,12 @@
               }
             }
             return this.transfer("controller", RESOURCE_ENERGY, "*");
+          case _CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED:
+            const towers = this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY).filter(({ energy }) => energy < config_default.Room.Towers.MinRequiredEnergy).sort(({ energy: a }, { energy: b }) => asc(a, b));
+            if (towers.length === 0) {
+              return false;
+            }
+            return this.transfer("tower", RESOURCE_ENERGY, "*", towers);
           case _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER:
             return this.transfer("controller", RESOURCE_ENERGY, "*");
           case _CreepJob.TRANSFER_ENERGY_TO_EXTENSION:
@@ -713,18 +720,26 @@
       }
       return true;
     }
-    transfer(to = "spawn", resourceType = RESOURCE_ENERGY, amount = 100) {
+    transfer(to = "spawn", resourceType = RESOURCE_ENERGY, amount = 100, targets = []) {
       var _a2, _b;
       if (this.creep.store.getUsedCapacity(resourceType) === 0) {
+        delete this.memory.myTransferId;
         return false;
       }
-      const target = (_b = (_a2 = {
-        controller: () => this.find(CreepFind.FIND_ROOM_CONTROLLER),
-        extension: () => this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0],
-        spawn: () => this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0],
-        tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0]
-      })[to]) == null ? void 0 : _b.call(_a2);
+      let target;
+      if (!this.memory.myTransferId) {
+        target = targets.length > 0 ? targets[0] : (_b = (_a2 = {
+          controller: () => this.find(CreepFind.FIND_ROOM_CONTROLLER),
+          extension: () => this.find(CreepFind.FIND_NEAR_EXTENSION_WITH_FREE_CAPACITY)[0],
+          spawn: () => this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0],
+          tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0]
+        })[to]) == null ? void 0 : _b.call(_a2);
+        this.memory.myTransferId = target.id;
+      } else {
+        target = Game.getObjectById(this.memory.myTransferId);
+      }
       if (!target) {
+        delete this.memory.myTransferId;
         return false;
       }
       const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
@@ -861,6 +876,7 @@
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_EXTENSION", "TRANSFER_ENERGY_TO_EXTENSION");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_SPAWN", "TRANSFER_ENERGY_TO_SPAWN");
   __publicField(_CreepJob, "TRANSFER_ENERGY_TO_TOWER", "TRANSFER_ENERGY_TO_TOWER");
+  __publicField(_CreepJob, "TRANSFER_ENERGY_TO_TOWER_IF_NEEDED", "TRANSFER_ENERGY_TO_TOWER_IF_NEEDED");
   __publicField(_CreepJob, "RESULT_TO_TEXT", {
     [OK]: "OK",
     [ERR_NOT_OWNER]: "NOT_OWNER",
@@ -888,6 +904,7 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        _CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         _CreepJob.TRANSFER_ENERGY_TO_TOWER,
@@ -905,6 +922,7 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        _CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
         _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
@@ -936,6 +954,7 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
+        _CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_TOWER,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
@@ -1251,6 +1270,16 @@
       }
     }
   }
+  function CountCreepsByRoom() {
+    var _a2;
+    let CreepCountByRoom = {};
+    for (const name in Game.creeps) {
+      (CreepCountByRoom[Game.creeps[name].room.name] = (_a2 = CreepCountByRoom[Game.creeps[name].room.name]) != null ? _a2 : []).push(name);
+    }
+    for (const name in CreepCountByRoom) {
+      Memory.log.push([`${name} creeps:`, CreepCountByRoom[name].length]);
+    }
+  }
 
   // src/lib/structures/ProceduralRoads.js
   var {
@@ -1417,6 +1446,7 @@
     ProceduralRoads();
     Towers();
     Live();
+    CountCreepsByRoom();
     MemoryLog();
   }
   eval(`module.exports.loop = ${loop.name};`);
