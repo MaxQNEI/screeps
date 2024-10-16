@@ -1,11 +1,27 @@
+import CreepJob from "./CreepJob.js";
 import CreepSpawn from "./CreepSpawn.js";
 
 export default class CreepMove extends CreepSpawn {
+  static DIRECTION_TO_TEXT = {
+    [TOP]: "TOP",
+    [TOP_RIGHT]: "TOP_RIGHT",
+    [RIGHT]: "RIGHT",
+    [BOTTOM_RIGHT]: "BOTTOM_RIGHT",
+    [BOTTOM]: "BOTTOM",
+    [BOTTOM_LEFT]: "BOTTOM_LEFT",
+    [LEFT]: "LEFT",
+    [TOP_LEFT]: "TOP_LEFT",
+  };
+
   move(target, next = true) {
     let direction;
 
+    if (Memory.ResetPath) {
+      delete this.memory.myPath;
+    }
+
     if (!this.memory.myPath || this.memory.myPath?.targetId !== target.id) {
-      const path = this.creep.pos.findPathTo(target, { ignoreCreeps: true, plainCost: 2, swampCost: 10 });
+      const path = this.creep.pos.findPathTo(target, { ignoreCreeps: false, plainCost: 2, swampCost: 10 });
       this.memory.myPath = { path, targetId: target.id };
     }
 
@@ -24,8 +40,7 @@ export default class CreepMove extends CreepSpawn {
     }
 
     if (direction) {
-      // console.log(JSON.stringify(path[0]));
-      this.creep.move(direction);
+      return this.creep.move(direction);
     } else {
       delete this.memory.myPath;
 

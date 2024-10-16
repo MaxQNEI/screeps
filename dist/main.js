@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByTicksRemainingPercent: 0.1, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 0.01 }, Towers: { MinRequiredEnergy: 500, MinEnergyRepair: 500 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByRemainingTicks: 50, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 1, RoleTower: 1 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 0.01 }, Towers: { MinRequiredEnergy: 500, MinEnergyRepair: 500 } } };
 
   // src/config.js
   var Config2 = {
@@ -12,12 +12,12 @@
       Creeps: {
         ForceSpawnIfCreepsLessThan: 3,
         MaximumSpawningTicksBetweenSpawns: 1500,
-        AutoRespawnByTicksRemainingPercent: 0.1,
+        AutoRespawnByRemainingTicks: 50,
         CountByRole: {
           RoleWorker: 4,
           RoleBuilder: 4,
-          RoleManager: 2,
-          RoleTower: 2
+          RoleManager: 1,
+          RoleTower: 1
         }
       },
       Roads: {
@@ -514,8 +514,11 @@
     move(target, next = true) {
       var _a2, _b, _c;
       let direction;
+      if (Memory.ResetPath) {
+        delete this.memory.myPath;
+      }
       if (!this.memory.myPath || ((_a2 = this.memory.myPath) == null ? void 0 : _a2.targetId) !== target.id) {
-        const path = this.creep.pos.findPathTo(target, { ignoreCreeps: true, plainCost: 2, swampCost: 10 });
+        const path = this.creep.pos.findPathTo(target, { ignoreCreeps: false, plainCost: 2, swampCost: 10 });
         this.memory.myPath = { path, targetId: target.id };
       }
       if (((_c = (_b = this.memory.myPath) == null ? void 0 : _b.path) == null ? void 0 : _c.length) > 0) {
@@ -528,7 +531,7 @@
         }
       }
       if (direction) {
-        this.creep.move(direction);
+        return this.creep.move(direction);
       } else {
         delete this.memory.myPath;
         if (next) {
@@ -539,6 +542,16 @@
       }
     }
   };
+  __publicField(CreepMove, "DIRECTION_TO_TEXT", {
+    [TOP]: "TOP",
+    [TOP_RIGHT]: "TOP_RIGHT",
+    [RIGHT]: "RIGHT",
+    [BOTTOM_RIGHT]: "BOTTOM_RIGHT",
+    [BOTTOM]: "BOTTOM",
+    [BOTTOM_LEFT]: "BOTTOM_LEFT",
+    [LEFT]: "LEFT",
+    [TOP_LEFT]: "TOP_LEFT"
+  });
 
   // src/lib/creep/CreepJob.js
   var COORDS_RADIUS_1 = [
@@ -734,7 +747,9 @@
           spawn: () => this.find(CreepFind.FIND_SPAWN_WITH_FREE_CAPACITY)[0],
           tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0]
         })[to]) == null ? void 0 : _b.call(_a2);
-        this.memory.myTransferId = target.id;
+        if (target == null ? void 0 : target.id) {
+          this.memory.myTransferId = target.id;
+        }
       } else {
         target = Game.getObjectById(this.memory.myTransferId);
       }
@@ -744,8 +759,10 @@
       }
       const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
       if (result === ERR_NOT_IN_RANGE) {
-        this.move(target);
+        const result2 = this.move(target);
         this.dryRun && this.creep.cancelOrder("move");
+      } else if (result === ERR_FULL) {
+        delete this.memory.myTransferId;
       } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
         this.log(this.memory.job, _CreepJob.RESULT_TO_TEXT[result]);
         !this.dryRun && this.status("\u{1F620}");
@@ -904,7 +921,6 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        _CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
         _CreepJob.TRANSFER_ENERGY_TO_TOWER,
@@ -922,7 +938,6 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        _CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
         _CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         _CreepJob.BUILD,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
@@ -954,7 +969,6 @@
       [
         //
         _CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        _CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
         _CreepJob.TRANSFER_ENERGY_TO_TOWER,
         _CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         _CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
@@ -1021,6 +1035,7 @@
       new Creep(Game.creeps[name]).live();
     }
     Memory.ResetJob = false;
+    Memory.ResetPath = false;
   }
 
   // lib/table.js
@@ -1143,7 +1158,7 @@
     Room: {
       Creeps: {
         CountByRole: CBR,
-        AutoRespawnByTicksRemainingPercent: ARBTRP
+        AutoRespawnByRemainingTicks: ARBRT
         //
       }
     }
@@ -1215,15 +1230,15 @@
           }
         }
       }
-      if (!next && ARBTRP > 0) {
+      if (!next && ARBRT > 0) {
         const nextByTimeList = [];
         for (const name in Game.creeps) {
           const creep = Game.creeps[name];
           if (creep.spawning) {
             continue;
           }
-          const remaining = creep.ticksToLive / CREEP_LIFE_TIME;
-          if (remaining < ARBTRP) {
+          const remaining = creep.ticksToLive;
+          if (creep.ticksToLive < ARBRT) {
             nextByTimeList.push({ remaining, creep });
           }
         }
@@ -1272,12 +1287,13 @@
   }
   function CountCreepsByRoom() {
     var _a2;
+    const NeedCountPerRoom = Object.values(CBR).reduce((pv, cv) => pv + cv, 0);
     let CreepCountByRoom = {};
     for (const name in Game.creeps) {
       (CreepCountByRoom[Game.creeps[name].room.name] = (_a2 = CreepCountByRoom[Game.creeps[name].room.name]) != null ? _a2 : []).push(name);
     }
     for (const name in CreepCountByRoom) {
-      Memory.log.push([`${name} creeps:`, CreepCountByRoom[name].length]);
+      Memory.log.push([`${name} creeps:`, `${CreepCountByRoom[name].length} of ${NeedCountPerRoom}`]);
     }
   }
 

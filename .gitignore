@@ -1,3 +1,6 @@
+# Apple 👎
+.DS_Store
+
 /api-access.js
 /node_modules
 /package-lock.json

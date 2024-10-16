@@ -38,7 +38,7 @@ Memory.CreepsShow = false;
 
 3. Respawning depending on the remaining ticks of a creep's life
 ```JavaScript
-Config.Room.Creeps.AutoRespawnByTicksRemainingPercent = CREEP_LIFE_TIME / 0.1;
+Config.Room.Creeps.AutoRespawnByRemainingTicks = CREEP_LIFE_TIME / 0.1;
 ```
 
 ```JavaScript

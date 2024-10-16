@@ -3,13 +3,13 @@ const Config = {
     Creeps: {
       ForceSpawnIfCreepsLessThan: 3,
       MaximumSpawningTicksBetweenSpawns: 1500,
-      AutoRespawnByTicksRemainingPercent: 0.1,
+      AutoRespawnByRemainingTicks: 50,
 
       CountByRole: {
         RoleWorker: 4,
         RoleBuilder: 4,
-        RoleManager: 2,
-        RoleTower: 2,
+        RoleManager: 1,
+        RoleTower: 1,
       },
     },
 

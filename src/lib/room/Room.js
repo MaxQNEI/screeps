@@ -7,7 +7,7 @@ const {
   Room: {
     Creeps: {
       CountByRole: CBR,
-      AutoRespawnByTicksRemainingPercent: ARBTRP, //
+      AutoRespawnByRemainingTicks: ARBRT, //
     },
   },
 } = Config;
@@ -112,7 +112,7 @@ function spawnCreeps(room) {
     }
 
     //
-    if (!next && ARBTRP > 0) {
+    if (!next && ARBRT > 0) {
       const nextByTimeList = [];
 
       for (const name in Game.creeps) {
@@ -122,9 +122,10 @@ function spawnCreeps(room) {
           continue;
         }
 
-        const remaining = creep.ticksToLive / CREEP_LIFE_TIME;
+        // const remaining = creep.ticksToLive / CREEP_LIFE_TIME;
+        const remaining = creep.ticksToLive;
 
-        if (remaining < ARBTRP) {
+        if (creep.ticksToLive < ARBRT) {
           nextByTimeList.push({ remaining, creep });
         }
       }
@@ -184,6 +185,7 @@ function roadsAroundSources(room) {
 }
 
 export function CountCreepsByRoom() {
+  const NeedCountPerRoom = Object.values(CBR).reduce((pv, cv) => pv + cv, 0);
   let CreepCountByRoom = {};
 
   for (const name in Game.creeps) {
@@ -191,6 +193,6 @@ export function CountCreepsByRoom() {
   }
 
   for (const name in CreepCountByRoom) {
-    Memory.log.push([`${name} creeps:`, CreepCountByRoom[name].length]);
+    Memory.log.push([`${name} creeps:`, `${CreepCountByRoom[name].length} of ${NeedCountPerRoom}`]);
   }
 }

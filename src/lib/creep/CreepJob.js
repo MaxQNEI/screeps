@@ -56,7 +56,6 @@ export default class CreepJob extends CreepMove {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
 
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
         CreepJob.TRANSFER_ENERGY_TO_EXTENSION,
@@ -78,7 +77,6 @@ export default class CreepJob extends CreepMove {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
 
         CreepJob.REPAIR_ROAD_NEAR_SOURCE,
         CreepJob.BUILD,
@@ -118,7 +116,6 @@ export default class CreepJob extends CreepMove {
       [
         //
         CreepJob.TRANSFER_ENERGY_TO_CONTROLLER_IF_NEEDED,
-        CreepJob.TRANSFER_ENERGY_TO_TOWER_IF_NEEDED,
 
         CreepJob.TRANSFER_ENERGY_TO_TOWER,
         CreepJob.TRANSFER_ENERGY_TO_SPAWN,
@@ -214,6 +211,7 @@ export default class CreepJob extends CreepMove {
         let add = [];
         if (this.memory.job === CreepJob.BUILD && this.memory.myBuildId) {
           const target = Game.getObjectById(this.memory.myBuildId);
+
           if (target) {
             add.push(
               `: ${target.structureType.toUpperCase()}: ${target.progress} of ${target.progressTotal} (${((target.progress / target.progressTotal) * 100).toFixed(2)}%) (${target.pos.x}x${target.pos.y})`,
@@ -377,7 +375,9 @@ export default class CreepJob extends CreepMove {
               tower: () => this.find(CreepFind.FIND_TOWER_WITH_FREE_CAPACITY)[0],
             }[to]?.();
 
-      this.memory.myTransferId = target.id;
+      if (target?.id) {
+        this.memory.myTransferId = target.id;
+      }
     } else {
       target = Game.getObjectById(this.memory.myTransferId);
     }
@@ -390,9 +390,13 @@ export default class CreepJob extends CreepMove {
 
     const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
 
+    // to === "controller" && console.log(to, target);
+
     if (result === ERR_NOT_IN_RANGE) {
-      this.move(target);
+      const result = this.move(target);
       this.dryRun && this.creep.cancelOrder("move");
+    } else if (result === ERR_FULL) {
+      delete this.memory.myTransferId;
     } else if (result !== OK && result !== ERR_NOT_IN_RANGE) {
       this.log(this.memory.job, CreepJob.RESULT_TO_TEXT[result]);
       !this.dryRun && this.status("😠");

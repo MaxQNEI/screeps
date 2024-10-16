@@ -7,4 +7,5 @@ export default function Live() {
   }
 
   Memory.ResetJob = false;
+  Memory.ResetPath = false;
 }
