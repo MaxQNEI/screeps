@@ -331,16 +331,53 @@ export default class CreepJob extends CreepMove {
 
   pickup(resourceType = RESOURCE_ENERGY) {
     if (this.creep.store.getFreeCapacity(resourceType) === 0) {
+      delete this.memory.myPickupId;
+      delete this.memory.myPickupMemKey;
       return false;
     }
 
-    const target = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)?.[0];
+    let isNewTarget = false;
+    let target;
+
+    if (!this.memory.myPickupId) {
+      target = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)?.[0];
+      isNewTarget = true;
+    } else {
+      target = Game.getObjectById(this.memory.myPickupId);
+    }
 
     // BREAK if target not found
     if (!target) {
+      delete this.memory.myPickupId;
+      delete this.memory.myPickupMemKey;
       return false;
     }
 
+    // Assign available seat
+    if (isNewTarget) {
+      Memory.DroppedResources = Memory.DroppedResources ?? {};
+      Memory.DroppedResources.Energy = Memory.DroppedResources.Energy ?? {};
+      const mdre = Memory.DroppedResources.Energy;
+
+      const { x, y } = target.pos;
+      const memkey = `${x}x${y}`;
+      mdre[memkey] = mdre[memkey] ?? { capacity: target.amount };
+
+      if (mdre[memkey].capacity <= 0) {
+        delete this.memory.myPickupId;
+        delete this.memory.myPickupMemKey;
+        return false;
+      }
+
+      console.log(this.creep.name, "assign to", memkey);
+
+      mdre[memkey].capacity += this.creep.store.getFreeCapacity(resourceType);
+    }
+
+    this.memory.myPickupId = target.id;
+    this.memory.myPickupMemKey = `${target.pos.x}x${target.pos.y}`;
+
+    // Pickup when available
     const result = this.creep.pickup(target);
 
     if (result === ERR_NOT_IN_RANGE) {
@@ -390,10 +427,8 @@ export default class CreepJob extends CreepMove {
 
     const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
 
-    // to === "controller" && console.log(to, target);
-
     if (result === ERR_NOT_IN_RANGE) {
-      const result = this.move(target);
+      this.move(target);
       this.dryRun && this.creep.cancelOrder("move");
     } else if (result === ERR_FULL) {
       delete this.memory.myTransferId;

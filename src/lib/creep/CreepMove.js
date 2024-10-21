@@ -40,27 +40,32 @@ export default class CreepMove extends CreepSpawn {
     }
 
     if (direction) {
-      return this.creep.move(direction);
+      const result = this.creep.move(direction);
+
+      return result;
     } else {
       delete this.memory.myPath;
 
       if (next) {
         this.move(target, false);
+        this.creep.say("🚙❓");
       } else {
         this.creep.say("🚙😠");
       }
     }
+  }
 
-    // this.creep.moveTo(target, {
-    //   visualizePathStyle: {
-    //     fill: "transparent",
-    //     stroke: "yellowgreen",
-    //     lineStyle: "dashed",
-    //     strokeWidth: 0.05,
-    //     opacity: 1,
-    //   },
-    // });
+  moveSimple(target) {
+    this.creep.moveTo(target, {
+      visualizePathStyle: {
+        fill: "transparent",
+        stroke: "yellowgreen",
+        lineStyle: "dashed",
+        strokeWidth: 0.05,
+        opacity: 1,
+      },
+    });
 
-    // this.status("🚙");
+    this.status("🚙");
   }
 }

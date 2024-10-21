@@ -7,16 +7,16 @@ const Config = {
 
       CountByRole: {
         RoleWorker: 4,
-        RoleBuilder: 4,
-        RoleManager: 1,
-        RoleTower: 1,
+        RoleBuilder: 6,
+        RoleManager: 2,
+        RoleTower: 2,
       },
     },
 
     Roads: {
       RateToBuild: 100,
       RateUpByCreep: 1,
-      RateDownByTick: 0.01,
+      RateDownByTick: 0.05,
     },
 
     Towers: {

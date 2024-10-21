@@ -1,3 +1,5 @@
+import CreepJob from "../creep/CreepJob.js";
+
 const {
   Room: {
     Roads: {
@@ -71,6 +73,10 @@ function add() {
 
     // Creep room
     const room = creep.room;
+
+    // if (creep.memory.job === CreepJob.PICKUP_ENERGY) {
+    //   return;
+    // }
 
     // Creep coords
     const { x, y } = creep.pos;

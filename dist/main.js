@@ -4,7 +4,7 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // <define:Config>
-  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByRemainingTicks: 50, CountByRole: { RoleWorker: 4, RoleBuilder: 4, RoleManager: 1, RoleTower: 1 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 0.01 }, Towers: { MinRequiredEnergy: 500, MinEnergyRepair: 500 } } };
+  var define_Config_default = { Room: { Creeps: { ForceSpawnIfCreepsLessThan: 3, MaximumSpawningTicksBetweenSpawns: 1500, AutoRespawnByRemainingTicks: 50, CountByRole: { RoleWorker: 4, RoleBuilder: 6, RoleManager: 2, RoleTower: 2 } }, Roads: { RateToBuild: 100, RateUpByCreep: 1, RateDownByTick: 0.05 }, Towers: { MinRequiredEnergy: 500, MinEnergyRepair: 500 } } };
 
   // src/config.js
   var Config2 = {
@@ -15,15 +15,15 @@
         AutoRespawnByRemainingTicks: 50,
         CountByRole: {
           RoleWorker: 4,
-          RoleBuilder: 4,
-          RoleManager: 1,
-          RoleTower: 1
+          RoleBuilder: 6,
+          RoleManager: 2,
+          RoleTower: 2
         }
       },
       Roads: {
         RateToBuild: 100,
         RateUpByCreep: 1,
-        RateDownByTick: 0.01
+        RateDownByTick: 0.05
       },
       Towers: {
         MinRequiredEnergy: 500,
@@ -531,15 +531,29 @@
         }
       }
       if (direction) {
-        return this.creep.move(direction);
+        const result = this.creep.move(direction);
+        return result;
       } else {
         delete this.memory.myPath;
         if (next) {
           this.move(target, false);
+          this.creep.say("\u{1F699}\u2753");
         } else {
           this.creep.say("\u{1F699}\u{1F620}");
         }
       }
+    }
+    moveSimple(target) {
+      this.creep.moveTo(target, {
+        visualizePathStyle: {
+          fill: "transparent",
+          stroke: "yellowgreen",
+          lineStyle: "dashed",
+          strokeWidth: 0.05,
+          opacity: 1
+        }
+      });
+      this.status("\u{1F699}");
     }
   };
   __publicField(CreepMove, "DIRECTION_TO_TEXT", {
@@ -713,14 +727,42 @@
       return true;
     }
     pickup(resourceType = RESOURCE_ENERGY) {
-      var _a2;
+      var _a2, _b, _c, _d;
       if (this.creep.store.getFreeCapacity(resourceType) === 0) {
+        delete this.memory.myPickupId;
+        delete this.memory.myPickupMemKey;
         return false;
       }
-      const target = (_a2 = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a2[0];
+      let isNewTarget = false;
+      let target;
+      if (!this.memory.myPickupId) {
+        target = (_a2 = this.find(CreepFind.FIND_NEAR_DROPPED_RESOURCES)) == null ? void 0 : _a2[0];
+        isNewTarget = true;
+      } else {
+        target = Game.getObjectById(this.memory.myPickupId);
+      }
       if (!target) {
+        delete this.memory.myPickupId;
+        delete this.memory.myPickupMemKey;
         return false;
       }
+      if (isNewTarget) {
+        Memory.DroppedResources = (_b = Memory.DroppedResources) != null ? _b : {};
+        Memory.DroppedResources.Energy = (_c = Memory.DroppedResources.Energy) != null ? _c : {};
+        const mdre = Memory.DroppedResources.Energy;
+        const { x, y } = target.pos;
+        const memkey = `${x}x${y}`;
+        mdre[memkey] = (_d = mdre[memkey]) != null ? _d : { capacity: target.amount };
+        if (mdre[memkey].capacity <= 0) {
+          delete this.memory.myPickupId;
+          delete this.memory.myPickupMemKey;
+          return false;
+        }
+        console.log(this.creep.name, "assign to", memkey);
+        mdre[memkey].capacity += this.creep.store.getFreeCapacity(resourceType);
+      }
+      this.memory.myPickupId = target.id;
+      this.memory.myPickupMemKey = `${target.pos.x}x${target.pos.y}`;
       const result = this.creep.pickup(target);
       if (result === ERR_NOT_IN_RANGE) {
         this.move(target);
@@ -759,7 +801,7 @@
       }
       const result = this.creep.transfer(target, resourceType, amount !== "*" ? amount : null);
       if (result === ERR_NOT_IN_RANGE) {
-        const result2 = this.move(target);
+        this.move(target);
         this.dryRun && this.creep.cancelOrder("move");
       } else if (result === ERR_FULL) {
         delete this.memory.myTransferId;
